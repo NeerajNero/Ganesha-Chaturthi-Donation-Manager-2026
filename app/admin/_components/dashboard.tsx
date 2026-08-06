@@ -1,6 +1,7 @@
 "use client";
 
 import { useStats } from "@/lib/api/stats";
+import { BroadcastButton } from "./broadcast-button";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 

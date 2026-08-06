@@ -8,9 +8,11 @@ const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 export function ScreenshotUpload({
   url,
   onChange,
+  label = "📷 Upload payment screenshot (optional)",
 }: {
   url: string | null;
   onChange: (url: string | null) => void;
+  label?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -82,7 +84,7 @@ export function ScreenshotUpload({
           onClick={() => inputRef.current?.click()}
           className="h-11 rounded-lg border border-dashed border-gray-400 px-4 text-sm font-medium text-gray-600 active:bg-gray-100 disabled:opacity-60"
         >
-          {uploading ? "Uploading…" : "📷 Upload payment screenshot (optional)"}
+          {uploading ? "Uploading…" : label}
         </button>
       )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
