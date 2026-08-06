@@ -19,11 +19,23 @@ export function Dashboard() {
     );
   }
 
-  const cards = [
+  const cards: {
+    label: string;
+    value: string;
+    sub?: string;
+    valueClass?: string;
+  }[] = [
     { label: "Total collected", value: rupees(data.totalCollected), sub: `Cash ${rupees(data.byMode.CASH)} · UPI ${rupees(data.byMode.UPI)}` },
     { label: "Today", value: rupees(data.todayCollected) },
     { label: "Cash in hand", value: rupees(data.cashInHand), sub: "collected, not yet deposited" },
     { label: "Pending UPI", value: String(data.pendingUpi.count), sub: `worth ${rupees(data.pendingUpi.amount)}` },
+    { label: "Total spent", value: rupees(data.totalExpenses), sub: `${data.expensesByCategory.length} categor${data.expensesByCategory.length === 1 ? "y" : "ies"}` },
+    {
+      label: "Balance",
+      value: rupees(data.balance),
+      sub: "collected − spent",
+      valueClass: data.balance >= 0 ? "text-green-600" : "text-red-600",
+    },
   ];
 
   return (
@@ -34,13 +46,35 @@ export function Dashboard() {
             <p className="text-xs uppercase tracking-wide text-gray-500">
               {c.label}
             </p>
-            <p className="mt-1 text-2xl font-extrabold text-orange-700">
+            <p
+              className={`mt-1 text-2xl font-extrabold ${
+                c.valueClass ?? "text-maroon"
+              }`}
+            >
               {c.value}
             </p>
             {c.sub && <p className="mt-1 text-xs text-gray-500">{c.sub}</p>}
           </div>
         ))}
       </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-base font-bold">Expenses by size</h2>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {(["MINOR", "MID", "MAJOR"] as const).map((s) => (
+            <div key={s} className="rounded-xl bg-cream px-2 py-3 ring-1 ring-gold/30">
+              <p className="text-xs uppercase tracking-wide text-gray-500">
+                {s.toLowerCase()}
+              </p>
+              <p className="mt-1 text-sm font-bold text-maroon">
+                {rupees(data.expensesBySize[s])}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <BroadcastButton />
 
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-base font-bold">By street</h2>

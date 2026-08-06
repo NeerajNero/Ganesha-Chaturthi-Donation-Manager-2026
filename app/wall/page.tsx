@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function WallPage() {
-  const { grandTotal, donations } = await getWallData();
+  const { grandTotal, totalSpent, balance, donations, expenses } =
+    await getWallData();
   const progress = Math.min(100, Math.round((grandTotal / GOAL_AMOUNT) * 100));
 
   const dateFmt = new Intl.DateTimeFormat("en-IN", {
@@ -80,6 +81,74 @@ export default async function WallPage() {
                   <p className="shrink-0 font-bold text-maroon">
                     ₹{d.amount.toLocaleString("en-IN")}
                   </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mt-8">
+          <h2 className="font-display mb-3 text-center text-xl text-maroon">
+            💸 Where the money went
+          </h2>
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-gold/25 bg-white px-4 py-3 text-center shadow-sm">
+              <p className="text-xs uppercase tracking-wide text-ink/50">
+                Total spent
+              </p>
+              <p className="font-display mt-0.5 text-lg text-maroon">
+                ₹{totalSpent.toLocaleString("en-IN")}
+              </p>
+            </div>
+            <div className="rounded-xl border border-gold/25 bg-white px-4 py-3 text-center shadow-sm">
+              <p className="text-xs uppercase tracking-wide text-ink/50">
+                Balance
+              </p>
+              <p
+                className={`font-display mt-0.5 text-lg ${
+                  balance >= 0 ? "text-green-700" : "text-red-700"
+                }`}
+              >
+                ₹{balance.toLocaleString("en-IN")}
+              </p>
+            </div>
+          </div>
+          {expenses.length === 0 ? (
+            <p className="rounded-2xl bg-white/90 py-5 text-center text-sm text-ink/60 shadow">
+              Expenses will be listed here as the festival preparations begin.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {expenses.map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white px-4 py-3 shadow-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{e.title}</p>
+                    <p className="truncate text-xs text-ink/50">
+                      {e.category} · {dateFmt.format(e.spentOn)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {e.receiptUrl && (
+                      <a
+                        href={e.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={e.receiptUrl}
+                          alt={`Bill for ${e.title}`}
+                          className="h-10 w-10 rounded-lg border border-gold/30 object-cover"
+                        />
+                      </a>
+                    )}
+                    <p className="font-bold text-maroon">
+                      ₹{e.amount.toLocaleString("en-IN")}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

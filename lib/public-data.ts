@@ -23,7 +23,7 @@ export async function getReceipt(receiptNo: string) {
 export const ANONYMOUS_NAME = "A Well-Wisher";
 
 export async function getWallData() {
-  const [donations, total] = await Promise.all([
+  const [donations, total, expenses, expensesTotal] = await Promise.all([
     prisma.donation.findMany({
       where: { status: "VERIFIED" },
       orderBy: { createdAt: "desc" },
@@ -41,10 +41,29 @@ export async function getWallData() {
       _sum: { amount: true },
       where: { status: "VERIFIED" },
     }),
+    // Public-safe fields only — no notes, no admin names.
+    prisma.expense.findMany({
+      orderBy: { spentOn: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        amount: true,
+        spentOn: true,
+        receiptUrl: true,
+      },
+    }),
+    prisma.expense.aggregate({ _sum: { amount: true } }),
   ]);
 
+  const grandTotal = total._sum.amount ?? 0;
+  const totalSpent = expensesTotal._sum.amount ?? 0;
+
   return {
-    grandTotal: total._sum.amount ?? 0,
+    grandTotal,
+    totalSpent,
+    balance: grandTotal - totalSpent,
     donations: donations.map((d) => ({
       id: d.id,
       name: d.anonymous ? ANONYMOUS_NAME : d.donorName,
@@ -52,5 +71,6 @@ export async function getWallData() {
       street: d.street,
       createdAt: d.createdAt,
     })),
+    expenses,
   };
 }
