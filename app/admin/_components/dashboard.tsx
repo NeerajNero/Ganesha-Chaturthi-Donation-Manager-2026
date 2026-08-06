@@ -2,6 +2,7 @@
 
 import { useStats } from "@/lib/api/stats";
 import { BroadcastButton } from "./broadcast-button";
+import { Skeleton } from "@/components/skeleton";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -9,7 +10,17 @@ export function Dashboard() {
   const { data, isPending, isError, error } = useStats();
 
   if (isPending) {
-    return <p className="py-8 text-center text-gray-500">Loading stats…</p>;
+    return (
+      <div className="space-y-6" role="status" aria-label="Loading">
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+      </div>
+    );
   }
   if (isError) {
     return (

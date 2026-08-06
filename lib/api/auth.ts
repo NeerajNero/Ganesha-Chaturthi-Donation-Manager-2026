@@ -34,6 +34,7 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: login,
+    meta: { skipToast: true }, // login page shows errors inline
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.all });
       router.replace(user.role === "ADMIN" ? "/admin" : "/collect");

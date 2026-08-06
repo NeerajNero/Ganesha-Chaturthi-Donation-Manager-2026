@@ -1,12 +1,13 @@
 "use client";
 
 import { useDonations, todayIST } from "@/lib/api/donations";
+import { ListSkeleton } from "@/components/skeleton";
 
 export function TodayList() {
   const { data, isPending, isError } = useDonations({ date: todayIST() });
 
   if (isPending) {
-    return <p className="py-4 text-center text-sm text-gray-500">Loading…</p>;
+    return <ListSkeleton rows={3} rowClassName="h-16" />;
   }
   if (isError) {
     return (

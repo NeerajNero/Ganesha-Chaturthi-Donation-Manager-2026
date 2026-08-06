@@ -9,5 +9,6 @@ async function sendSummary(): Promise<{ message: string }> {
 }
 
 export function useSendSummary() {
-  return useMutation({ mutationFn: sendSummary });
+  // The broadcast dialog renders its own success/error result.
+  return useMutation({ mutationFn: sendSummary, meta: { skipToast: true } });
 }

@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useUpdateVolunteer, useVolunteers, type Volunteer } from "@/lib/api/users";
+import { ListSkeleton } from "@/components/skeleton";
 
 export function VolunteerList() {
   const { data, isPending, isError, error } = useVolunteers();
 
   if (isPending) {
-    return <p className="py-8 text-center text-gray-500">Loading volunteers…</p>;
+    return <ListSkeleton rows={3} rowClassName="h-28" />;
   }
   if (isError) {
     return (
@@ -123,11 +124,6 @@ function VolunteerCard({ volunteer }: { volunteer: Volunteer }) {
           >
             Reset password
           </button>
-        )}
-        {update.isError && (
-          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {update.error.message}
-          </p>
         )}
       </div>
     </li>

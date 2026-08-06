@@ -89,11 +89,6 @@ export function CreateVolunteerForm() {
         </p>
       </div>
 
-      {create.isError && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {create.error.message}
-        </p>
-      )}
       {create.isSuccess && (
         <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
           Volunteer “{create.data.name}” created

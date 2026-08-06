@@ -7,6 +7,7 @@ import {
   type Expense,
 } from "@/lib/api/expenses";
 import { ExpenseForm } from "./expense-form";
+import { ListSkeleton } from "@/components/skeleton";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const FILTER_CLASS =
@@ -73,7 +74,7 @@ export function ExpenseList() {
       </div>
 
       {expenses.isPending ? (
-        <p className="py-8 text-center text-gray-500">Loading expenses…</p>
+        <ListSkeleton rows={3} rowClassName="h-28" />
       ) : expenses.isError ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {expenses.error.message}
@@ -174,11 +175,6 @@ function ExpenseRow({ expense: e }: { expense: Expense }) {
           {del.isPending ? "Deleting…" : "Delete"}
         </button>
       </div>
-      {del.isError && (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {del.error.message}
-        </p>
-      )}
     </li>
   );
 }

@@ -7,6 +7,7 @@ import {
   type Donation,
 } from "@/lib/api/donations";
 import { useVolunteers } from "@/lib/api/users";
+import { ListSkeleton } from "@/components/skeleton";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const FILTER_CLASS =
@@ -96,7 +97,7 @@ export function DonationsManager() {
       </div>
 
       {donations.isPending ? (
-        <p className="py-8 text-center text-gray-500">Loading donations…</p>
+        <ListSkeleton rows={4} rowClassName="h-24" />
       ) : donations.isError ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {donations.error.message}
@@ -224,11 +225,6 @@ function DonationRow({ donation: d }: { donation: Donation }) {
             </button>
           )}
         </div>
-      )}
-      {update.isError && (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {update.error.message}
-        </p>
       )}
     </li>
   );
