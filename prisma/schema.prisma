@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VOLUNTEER
+}
+
+enum Mode {
+  CASH
+  UPI
+}
+
+enum Status {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id        String     @id @default(cuid())
+  username  String     @unique
+  password  String     // bcrypt hash
+  name      String
+  role      Role       @default(VOLUNTEER)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  donations Donation[]
+  expenses  Expense[]
+}
+
+enum ExpenseSize {
+  MINOR
+  MID
+  MAJOR
+}
+
+model Expense {
+  id         String      @id @default(cuid())
+  title      String      // e.g. "Marigold flowers - day 1"
+  category   String      // free text w/ autocomplete: Decoration, Prasad, Sound, Pandal...
+  size       ExpenseSize
+  amount     Int         // rupees
+  receiptUrl String?     // Cloudinary bill/receipt photo, optional
+  notes      String?
+  spentOn    DateTime    @default(now()) // date of spend, editable
+  addedById  String
+  addedBy    User        @relation(fields: [addedById], references: [id])
+  createdAt  DateTime    @default(now())
+
+  @@index([spentOn])
+}
+
+model Counter {
+  id    String @id            // "receipt"
+  value Int    @default(0)
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  receiptNo     String   @unique          // GU26-0001
+  donorName     String
+  mobile        String?                    // optional, 10-digit Indian mobile
+  street        String
+  houseNo       String?
+  amount        Int                        // rupees, integer only
+  mode          Mode
+  status        Status   @default(VERIFIED) // set PENDING in code when mode=UPI
+  screenshotUrl String?
+  anonymous     Boolean  @default(false)
+  cashDeposited Boolean  @default(false)
+  collectedById String
+  collectedBy   User     @relation(fields: [collectedById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([street])
+  @@index([collectedById])
+  @@index([createdAt])
+}
