@@ -70,6 +70,11 @@ export function Dashboard() {
       </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-base font-bold">Last 10 days</h2>
+        <DailyChart daily={data.daily} />
+      </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-base font-bold">Expenses by size</h2>
         <div className="grid grid-cols-3 gap-2 text-center">
           {(["MINOR", "MID", "MAJOR"] as const).map((s) => (
@@ -84,8 +89,6 @@ export function Dashboard() {
           ))}
         </div>
       </div>
-
-      <BroadcastButton />
 
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-base font-bold">By street</h2>
@@ -154,6 +157,33 @@ export function Dashboard() {
           </div>
         )}
       </section>
+
+      <BroadcastButton />
+    </div>
+  );
+}
+
+function DailyChart({ daily }: { daily: { date: string; total: number }[] }) {
+  const max = Math.max(...daily.map((d) => d.total), 1);
+  const short = (n: number) =>
+    n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
+
+  return (
+    <div className="flex h-36 items-end gap-1.5">
+      {daily.map((d) => (
+        <div key={d.date} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+          <span className="text-[10px] font-semibold text-maroon">
+            {d.total > 0 ? short(d.total) : ""}
+          </span>
+          <div
+            className="w-full rounded-t-md bg-gradient-to-t from-marigold to-gold"
+            style={{
+              height: `${Math.max(d.total > 0 ? 6 : 2, Math.round((d.total / max) * 88))}px`,
+            }}
+          />
+          <span className="text-[10px] text-gray-500">{d.date.slice(8)}</span>
+        </div>
+      ))}
     </div>
   );
 }

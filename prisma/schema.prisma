@@ -41,6 +41,19 @@ enum ExpenseSize {
   MAJOR
 }
 
+model Photo {
+  id        String   @id @default(cuid())
+  url       String   // Cloudinary URL
+  caption   String?
+  createdAt DateTime @default(now())
+}
+
+model Update {
+  id        String   @id @default(cuid())
+  message   String   // announcement shown on the public live page
+  createdAt DateTime @default(now())
+}
+
 model Expense {
   id         String      @id @default(cuid())
   title      String      // e.g. "Marigold flowers - day 1"

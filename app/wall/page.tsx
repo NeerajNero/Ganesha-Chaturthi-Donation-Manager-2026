@@ -4,6 +4,7 @@ import { getWallData } from "@/lib/public-data";
 import { COMMITTEE_NAME, GOAL_AMOUNT } from "@/lib/config";
 import { CountUp } from "@/components/count-up";
 import { Diya } from "@/components/diya";
+import { MilestoneBanner } from "@/components/milestone-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,9 @@ export default async function WallPage() {
       <div className="garland" />
 
       <div className="mx-auto w-full max-w-lg px-4 pb-10">
+        <div className="mt-5">
+          <MilestoneBanner progress={progress} />
+        </div>
         <section className="mt-5 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
           <p className="text-xs uppercase tracking-widest text-ink/60">
             Collected so far

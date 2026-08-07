@@ -25,6 +25,16 @@ export const STATS_QUERY_KEYS = {
   summary: () => [...STATS_QUERY_KEYS.all, "summary"] as const,
 };
 
+export const PHOTOS_QUERY_KEYS = {
+  all: ["photos"] as const,
+  list: () => [...PHOTOS_QUERY_KEYS.all, "list"] as const,
+};
+
+export const UPDATES_QUERY_KEYS = {
+  all: ["updates"] as const,
+  list: () => [...UPDATES_QUERY_KEYS.all, "list"] as const,
+};
+
 export const EXPENSES_QUERY_KEYS = {
   all: ["expenses"] as const,
   list: (params: Record<string, string>) =>

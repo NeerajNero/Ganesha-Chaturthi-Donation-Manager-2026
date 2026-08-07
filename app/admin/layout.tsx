@@ -6,6 +6,8 @@ const NAV_LINKS = [
   { href: "/admin/donations", label: "Donations" },
   { href: "/admin/expenses", label: "Expenses" },
   { href: "/admin/volunteers", label: "Volunteers" },
+  { href: "/admin/gallery", label: "Gallery" },
+  { href: "/admin/live", label: "Live" },
 ] as const;
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {

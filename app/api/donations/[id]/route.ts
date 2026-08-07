@@ -1,7 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { updateDonationSchema } from "@/lib/validators";
+import { sendTelegramMessage } from "@/lib/telegram";
+import { crossedMilestone, milestoneMessage } from "@/lib/milestones";
+import { GOAL_AMOUNT } from "@/lib/config";
 
 export async function PATCH(
   req: Request,
@@ -62,6 +65,33 @@ export async function PATCH(
       },
       include: { collectedBy: { select: { name: true } } },
     });
+
+    // Verifying a UPI donation can push the total across a goal milestone.
+    if (status === "VERIFIED" && donation.status !== "VERIFIED") {
+      const origin = new URL(req.url).origin;
+      after(async () => {
+        try {
+          const verified = await prisma.donation.aggregate({
+            _sum: { amount: true },
+            where: { status: "VERIFIED" },
+          });
+          const verifiedTotal = verified._sum.amount ?? 0;
+          const milestone = crossedMilestone(
+            verifiedTotal - updated.amount,
+            verifiedTotal,
+            GOAL_AMOUNT
+          );
+          if (milestone) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+            await sendTelegramMessage(
+              milestoneMessage(milestone, verifiedTotal, GOAL_AMOUNT, appUrl)
+            );
+          }
+        } catch {
+          // best-effort only
+        }
+      });
+    }
 
     return NextResponse.json({ ok: true, data: updated });
   } catch {

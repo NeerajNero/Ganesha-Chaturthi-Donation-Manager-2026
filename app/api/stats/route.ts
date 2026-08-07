@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { istDayRange, todayIST } from "@/lib/dates";
+import { addDaysIST, istDateOf, istDayRange, todayIST } from "@/lib/dates";
 
 // Money that "counts" is VERIFIED (cash is auto-verified; UPI once checked).
 const VERIFIED = { status: "VERIFIED" as const };
@@ -88,6 +88,25 @@ export async function GET() {
       }),
     ]);
 
+    // Daily verified totals for the last 10 IST days (chart on the dashboard).
+    const todayKey = todayIST();
+    const dayKeys = Array.from({ length: 10 }, (_, i) =>
+      addDaysIST(todayKey, i - 9)
+    );
+    const windowRows = await prisma.donation.findMany({
+      where: { ...VERIFIED, createdAt: { gte: istDayRange(dayKeys[0]).gte } },
+      select: { amount: true, createdAt: true },
+    });
+    const dailyTotals = new Map<string, number>();
+    for (const row of windowRows) {
+      const key = istDateOf(row.createdAt);
+      dailyTotals.set(key, (dailyTotals.get(key) ?? 0) + row.amount);
+    }
+    const daily = dayKeys.map((date) => ({
+      date,
+      total: dailyTotals.get(date) ?? 0,
+    }));
+
     const nameById = new Map(users.map((u) => [u.id, u.name]));
     const cashInHandById = new Map(
       undepositedCash.map((r) => [r.collectedById, r._sum.amount ?? 0])
@@ -101,6 +120,7 @@ export async function GET() {
     const data = {
       totalCollected,
       donationCount: overall._count,
+      daily,
       todayCollected: today._sum.amount ?? 0,
       totalExpenses,
       balance: totalCollected - totalExpenses,

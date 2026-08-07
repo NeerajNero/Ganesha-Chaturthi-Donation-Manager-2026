@@ -75,6 +75,19 @@ export const updateExpenseSchema = createExpenseSchema
     message: "Nothing to update",
   });
 
+export const createPhotoSchema = z.object({
+  url: z.url("Invalid photo URL"),
+  caption: z.string().trim().max(100).optional(),
+});
+
+export const createUpdateSchema = z.object({
+  message: z
+    .string()
+    .trim()
+    .min(2, "Update must be at least 2 characters")
+    .max(280, "Keep updates under 280 characters"),
+});
+
 export const updateUserSchema = z
   .object({
     active: z.boolean().optional(),

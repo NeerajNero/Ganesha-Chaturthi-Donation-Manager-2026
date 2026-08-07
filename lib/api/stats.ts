@@ -7,6 +7,7 @@ import { STATS_QUERY_KEYS } from "@/lib/query-keys";
 export type Stats = {
   totalCollected: number;
   donationCount: number;
+  daily: { date: string; total: number }[];
   todayCollected: number;
   totalExpenses: number;
   balance: number;

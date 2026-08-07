@@ -5,6 +5,8 @@ import { getSession } from "@/lib/auth";
 import { createDonationSchema } from "@/lib/validators";
 import { nextReceiptNo } from "@/lib/receipt";
 import { formatDonationMessage, sendTelegramMessage } from "@/lib/telegram";
+import { crossedMilestone, milestoneMessage } from "@/lib/milestones";
+import { GOAL_AMOUNT } from "@/lib/config";
 
 import { istDayRange } from "@/lib/dates";
 
@@ -83,6 +85,27 @@ export async function POST(req: Request) {
             totalSoFar: total._sum.amount ?? 0,
           })
         );
+
+        // Cash counts as verified immediately — check for a goal milestone.
+        if (donation.status === "VERIFIED") {
+          const verified = await prisma.donation.aggregate({
+            _sum: { amount: true },
+            where: { status: "VERIFIED" },
+          });
+          const verifiedTotal = verified._sum.amount ?? 0;
+          const milestone = crossedMilestone(
+            verifiedTotal - donation.amount,
+            verifiedTotal,
+            GOAL_AMOUNT
+          );
+          if (milestone) {
+            const appUrl =
+              process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+            await sendTelegramMessage(
+              milestoneMessage(milestone, verifiedTotal, GOAL_AMOUNT, appUrl)
+            );
+          }
+        }
       } catch {
         // best-effort only
       }

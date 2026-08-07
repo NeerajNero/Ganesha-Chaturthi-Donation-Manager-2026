@@ -11,6 +11,7 @@ import {
 import { GaneshaSvg } from "@/components/ganesha-svg";
 import { Petals } from "@/components/petals";
 import { Diya } from "@/components/diya";
+import { MilestoneBanner } from "@/components/milestone-banner";
 
 // Lazy client chunk; static Ganesha renders until (and unless) JS arrives.
 const GaneshaScene = nextDynamic(
@@ -68,11 +69,27 @@ export default async function HomePage() {
             <span className="rounded-full bg-saffron/15 px-3 py-1.5 text-maroon">
               📍 {VENUE}
             </span>
+            <Link
+              href="/live"
+              className="rounded-full bg-maroon px-3 py-1.5 text-cream shadow-sm"
+            >
+              📣 Schedule & updates
+            </Link>
+            <Link
+              href="/gallery"
+              className="rounded-full bg-maroon px-3 py-1.5 text-cream shadow-sm"
+            >
+              📸 Gallery
+            </Link>
           </div>
         </section>
 
+        <div className="mt-6">
+          <MilestoneBanner progress={progress} />
+        </div>
+
         {/* live total */}
-        <section className="mt-8 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
+        <section className="mt-6 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
           <p className="text-xs uppercase tracking-widest text-ink/60">
             Collected so far
           </p>
@@ -135,8 +152,7 @@ export default async function HomePage() {
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-cream/90">
             Every rupee is accounted for: the murti and mandap decoration,
-            daily aarti and prasad, cultural programmes for children, and the
-            community bhandara. Every donation gets a numbered receipt, and
+            daily aarti and prasad. Every donation gets a numbered receipt, and
             all verified collections appear on our public wall — full
             transparency, always.
           </p>
