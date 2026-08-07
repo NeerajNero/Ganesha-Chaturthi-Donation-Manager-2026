@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { createUpdateSchema } from "@/lib/validators";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 // Public — powers the /live page updates feed and the admin manager.
 export async function GET() {
@@ -41,6 +42,20 @@ export async function POST(req: Request) {
     const update = await prisma.update.create({
       data: { message: parsed.data.message },
     });
+
+    // Announce on Telegram — best-effort, never fails the request.
+    const origin = new URL(req.url).origin;
+    after(async () => {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+        await sendTelegramMessage(
+          ["📣 New announcement", update.message, `${appUrl}/live`].join("\n")
+        );
+      } catch {
+        // best-effort only
+      }
+    });
+
     return NextResponse.json({ ok: true, data: update }, { status: 201 });
   } catch {
     return NextResponse.json(

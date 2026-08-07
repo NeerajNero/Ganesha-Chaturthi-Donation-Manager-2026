@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { createPhotoSchema } from "@/lib/validators";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 // Public — powers the /gallery page and the admin manager.
 export async function GET() {
@@ -41,6 +42,24 @@ export async function POST(req: Request) {
     const photo = await prisma.photo.create({
       data: { url: parsed.data.url, caption: parsed.data.caption || null },
     });
+
+    // Announce on Telegram — best-effort, never fails the request.
+    const origin = new URL(req.url).origin;
+    after(async () => {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+        await sendTelegramMessage(
+          [
+            "📸 New photo in the festival gallery",
+            ...(photo.caption ? [`“${photo.caption}”`] : []),
+            `${appUrl}/gallery`,
+          ].join("\n")
+        );
+      } catch {
+        // best-effort only
+      }
+    });
+
     return NextResponse.json({ ok: true, data: photo }, { status: 201 });
   } catch {
     return NextResponse.json(
