@@ -9,6 +9,7 @@ import {
   type ExpenseSize,
 } from "@/lib/api/expenses";
 import { ScreenshotUpload } from "@/components/screenshot-upload";
+import { FestiveSpinner } from "@/components/festive-spinner";
 
 const INPUT_CLASS =
   "block h-12 w-full rounded-lg border border-gray-300 px-3 text-base focus:border-saffron focus:outline-none focus:ring-1 focus:ring-saffron";
@@ -227,11 +228,15 @@ export function ExpenseForm({
           disabled={mutation.isPending}
           className="h-12 flex-1 rounded-lg bg-maroon text-base font-semibold text-cream active:bg-maroon/90 disabled:opacity-60"
         >
-          {mutation.isPending
-            ? "Saving…"
-            : initial
-              ? "Save changes"
-              : "Add expense"}
+          {mutation.isPending ? (
+            <span className="flex items-center justify-center gap-2">
+              <FestiveSpinner size={20} /> Saving…
+            </span>
+          ) : initial ? (
+            "Save changes"
+          ) : (
+            "Add expense"
+          )}
         </button>
         {initial && (
           <button

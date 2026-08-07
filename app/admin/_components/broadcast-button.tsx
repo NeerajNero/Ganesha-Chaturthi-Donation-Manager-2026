@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStats } from "@/lib/api/stats";
 import { useSendSummary } from "@/lib/api/broadcast";
 import { formatSummaryMessage } from "@/lib/summary";
+import { FestiveSpinner } from "@/components/festive-spinner";
 
 export function BroadcastButton() {
   const { data } = useStats();
@@ -81,7 +82,13 @@ export function BroadcastButton() {
                 disabled={send.isPending}
                 className="h-12 flex-1 rounded-lg bg-maroon text-sm font-semibold text-cream active:bg-maroon/90 disabled:opacity-60"
               >
-                {send.isPending ? "Sending…" : "Send"}
+                {send.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <FestiveSpinner size={18} /> Sending…
+                  </span>
+                ) : (
+                  "Send"
+                )}
               </button>
               <button
                 type="button"

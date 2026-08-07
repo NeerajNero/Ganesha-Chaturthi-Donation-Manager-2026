@@ -28,6 +28,21 @@ export default async function LoginPage() {
         )}
 
         <LoginForm />
+
+        <div className="mt-5 flex items-center justify-center gap-5 text-sm">
+          <Link
+            href="/"
+            className="font-medium text-maroon underline underline-offset-4"
+          >
+            🏠 Home
+          </Link>
+          <Link
+            href="/wall"
+            className="font-medium text-maroon underline underline-offset-4"
+          >
+            🪔 Donation wall
+          </Link>
+        </div>
       </div>
     </main>
   );

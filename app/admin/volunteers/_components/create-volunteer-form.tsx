@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCreateVolunteer } from "@/lib/api/users";
+import { FestiveSpinner } from "@/components/festive-spinner";
 
 const INPUT_CLASS =
   "block h-12 w-full rounded-lg border border-gray-300 px-3 text-base focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500";
@@ -94,7 +95,13 @@ export function CreateVolunteerForm() {
         disabled={create.isPending}
         className="h-12 w-full rounded-lg bg-orange-600 text-base font-semibold text-white active:bg-orange-700 disabled:opacity-60"
       >
-        {create.isPending ? "Creating…" : "Create volunteer"}
+        {create.isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <FestiveSpinner size={20} /> Creating…
+          </span>
+        ) : (
+          "Create volunteer"
+        )}
       </button>
     </form>
   );

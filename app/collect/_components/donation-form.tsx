@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/donations";
 import { COMMITTEE_NAME } from "@/lib/config";
 import { ScreenshotUpload } from "@/components/screenshot-upload";
+import { FestiveSpinner } from "@/components/festive-spinner";
 
 const QUICK_AMOUNTS = [101, 201, 501, 1001] as const;
 const INPUT_CLASS =
@@ -296,7 +297,13 @@ export function DonationForm() {
         disabled={create.isPending}
         className="h-14 w-full rounded-xl bg-orange-600 text-lg font-bold text-white active:bg-orange-700 disabled:opacity-60"
       >
-        {create.isPending ? "Saving…" : "Save donation"}
+        {create.isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <FestiveSpinner size={22} /> Saving…
+          </span>
+        ) : (
+          "Save donation"
+        )}
       </button>
     </form>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLogin } from "@/lib/api/auth";
+import { FestiveSpinner } from "@/components/festive-spinner";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
@@ -64,7 +65,13 @@ export function LoginForm() {
         disabled={login.isPending}
         className="h-12 w-full rounded-lg bg-maroon text-base font-semibold text-cream active:bg-maroon/90 disabled:opacity-60"
       >
-        {login.isPending ? "Logging in…" : "Log in"}
+        {login.isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <FestiveSpinner size={20} /> Logging in…
+          </span>
+        ) : (
+          "Log in"
+        )}
       </button>
     </form>
   );
