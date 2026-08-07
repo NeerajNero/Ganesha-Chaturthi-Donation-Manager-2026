@@ -10,6 +10,7 @@ import {
 } from "@/lib/config";
 import { Diya } from "@/components/diya";
 import { VenueMap } from "@/components/venue-map";
+import { AartiCountdown } from "@/components/aarti-countdown";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,10 @@ export default async function LivePage() {
       <div className="garland" />
 
       <div className="mx-auto w-full max-w-lg px-4 pb-10">
+        <div className="mt-5">
+          <AartiCountdown />
+        </div>
+
         <section className="mt-6">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">
             📣 Latest updates

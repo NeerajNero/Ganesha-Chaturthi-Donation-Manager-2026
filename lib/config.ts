@@ -13,6 +13,17 @@ export const VENUE_COORDS: { lat: number; lng: number } | null = {
   lng: 77.684085,
 };
 
+// Festival window + daily aarti times (IST) — powers the /live countdown.
+export const FESTIVAL_START = "TBA"; // YYYY-MM-DD
+export const FESTIVAL_END = "TBA";
+export const DAILY_AARTI = [
+  { label: "Morning Aarti", time: "08:00" },
+  { label: "Evening Aarti", time: "18:30" },
+] as const;
+
+// Donations at or above this amount get the gold Patron treatment on the wall.
+export const PATRON_THRESHOLD = 5_000;
+
 // Festival programme shown on /live — edit to your real schedule.
 export const SCHEDULE = [
   { date: "14 Sep", day: "Monday", title: "Ganesh Sthapana & Pran Pratishtha", time: "10:00 AM" },

@@ -14,6 +14,7 @@ export async function getReceipt(receiptNo: string) {
       mode: true,
       status: true,
       createdAt: true,
+      diyaLit: true,
     },
   });
   if (!donation || donation.status === "REJECTED") return null;
@@ -57,6 +58,18 @@ export async function getWallData() {
     prisma.expense.aggregate({ _sum: { amount: true } }),
   ]);
 
+  // Diyas lit by donors from their receipts (anonymous respected).
+  const litRows = await prisma.donation.findMany({
+    where: { status: "VERIFIED", diyaLit: true },
+    orderBy: { createdAt: "desc" },
+    take: 60,
+    select: { id: true, donorName: true, anonymous: true },
+  });
+  const litDiyas = litRows.map((d) => ({
+    id: d.id,
+    name: d.anonymous ? ANONYMOUS_NAME : d.donorName,
+  }));
+
   // Top collectors leaderboard — volunteer first names + verified totals only.
   const topRows = await prisma.donation.groupBy({
     by: ["collectedById"],
@@ -76,6 +89,7 @@ export async function getWallData() {
   const totalSpent = expensesTotal._sum.amount ?? 0;
 
   return {
+    litDiyas,
     topCollectors: topRows.map((r) => ({
       id: r.collectedById,
       name: collectorName.get(r.collectedById) ?? "Volunteer",

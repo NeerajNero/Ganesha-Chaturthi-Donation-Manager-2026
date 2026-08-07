@@ -88,6 +88,7 @@ model Donation {
   screenshotUrl String?
   anonymous     Boolean  @default(false)
   cashDeposited Boolean  @default(false)
+  diyaLit       Boolean  @default(false) // donor lit a diya from their receipt
   collectedById String
   collectedBy   User     @relation(fields: [collectedById], references: [id])
   createdAt     DateTime @default(now())

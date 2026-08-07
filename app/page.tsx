@@ -1,4 +1,3 @@
-import nextDynamic from "next/dynamic";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getWallData } from "@/lib/public-data";
@@ -6,20 +5,15 @@ import {
   COMMITTEE_NAME,
   FESTIVAL_DATES,
   GOAL_AMOUNT,
+  PATRON_THRESHOLD,
   VENUE,
   VENUE_COORDS,
 } from "@/lib/config";
 import { mapsDirectionsUrl } from "@/lib/location";
-import { GaneshaSvg } from "@/components/ganesha-svg";
 import { Petals } from "@/components/petals";
 import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
-
-// Lazy client chunk; static Ganesha renders until (and unless) JS arrives.
-const GaneshaScene = nextDynamic(
-  () => import("@/components/ganesha-scene").then((m) => m.GaneshaScene),
-  { loading: () => <GaneshaSvg className="h-auto w-full" /> }
-);
+import { BlessingGanesha } from "@/components/blessing-ganesha";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +50,7 @@ export default async function HomePage() {
             ॥ श्री गणेशाय नमः ॥
           </p>
           <div className="mx-auto mt-2 w-52 sm:w-60">
-            <GaneshaScene />
+            <BlessingGanesha />
           </div>
           <p className="mt-1 text-xs text-ink/50">
             psst — tap Bappa for a blessing
@@ -137,12 +131,21 @@ export default async function HomePage() {
               {recent.map((d) => (
                 <li
                   key={d.id}
-                  className="rounded-xl border border-gold/30 bg-white px-3 py-2.5 shadow-sm"
+                  className={`rounded-xl border px-3 py-2.5 shadow-sm ${
+                    d.amount >= PATRON_THRESHOLD
+                      ? "border-gold bg-gradient-to-br from-gold/15 to-white"
+                      : "border-gold/30 bg-white"
+                  }`}
                 >
                   <p className="truncate text-sm font-semibold">{d.name}</p>
                   <p className="truncate text-xs text-ink/50">{d.street}</p>
                   <p className="mt-0.5 text-sm font-bold text-maroon">
                     {rupees(d.amount)}
+                    {d.amount >= PATRON_THRESHOLD && (
+                      <span className="ml-1 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon">
+                        🌟 PATRON
+                      </span>
+                    )}
                   </p>
                 </li>
               ))}

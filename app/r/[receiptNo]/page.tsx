@@ -6,6 +6,7 @@ import { amountInWords } from "@/lib/receipt";
 import { COMMITTEE_NAME } from "@/lib/config";
 import { GaneshaSvg } from "@/components/ganesha-svg";
 import { ShareReceipt } from "@/components/share-receipt";
+import { LightDiya } from "@/components/light-diya";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,10 @@ export default async function ReceiptPage({
           </div>
 
           <div className="space-y-3 border-t border-dashed border-gold/60 px-6 py-4 text-center">
+            <LightDiya
+              receiptNo={receipt.receiptNo}
+              initialLit={receipt.diyaLit}
+            />
             <ShareReceipt
               receiptNo={receipt.receiptNo}
               amount={receipt.amount}

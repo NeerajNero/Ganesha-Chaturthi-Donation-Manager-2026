@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getWallData } from "@/lib/public-data";
-import { COMMITTEE_NAME, GOAL_AMOUNT } from "@/lib/config";
+import { COMMITTEE_NAME, GOAL_AMOUNT, PATRON_THRESHOLD } from "@/lib/config";
 import { CountUp } from "@/components/count-up";
 import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
@@ -13,8 +13,15 @@ export const metadata: Metadata = {
 };
 
 export default async function WallPage() {
-  const { grandTotal, totalSpent, balance, donations, expenses, topCollectors } =
-    await getWallData();
+  const {
+    grandTotal,
+    totalSpent,
+    balance,
+    donations,
+    expenses,
+    topCollectors,
+    litDiyas,
+  } = await getWallData();
   const progress = Math.min(100, Math.round((grandTotal / GOAL_AMOUNT) * 100));
 
   const dateFmt = new Intl.DateTimeFormat("en-IN", {
@@ -68,28 +75,60 @@ export default async function WallPage() {
             </p>
           ) : (
             <ul className="space-y-2">
-              {donations.map((d) => (
-                <li
-                  key={d.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white px-4 py-3 shadow-sm"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Diya size={22} />
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{d.name}</p>
-                      <p className="truncate text-xs text-ink/50">
-                        {d.street} · {dateFmt.format(d.createdAt)}
-                      </p>
+              {donations.map((d) => {
+                const patron = d.amount >= PATRON_THRESHOLD;
+                return (
+                  <li
+                    key={d.id}
+                    className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 shadow-sm ${
+                      patron
+                        ? "border-gold bg-gradient-to-r from-gold/20 to-white"
+                        : "border-gold/25 bg-white"
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Diya size={22} />
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold">
+                          {d.name}
+                          {patron && (
+                            <span className="ml-1.5 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon align-middle">
+                              🌟 PATRON
+                            </span>
+                          )}
+                        </p>
+                        <p className="truncate text-xs text-ink/50">
+                          {d.street} · {dateFmt.format(d.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <p className="shrink-0 font-bold text-maroon">
-                    ₹{d.amount.toLocaleString("en-IN")}
-                  </p>
-                </li>
-              ))}
+                    <p className="shrink-0 font-bold text-maroon">
+                      ₹{d.amount.toLocaleString("en-IN")}
+                    </p>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
+
+        {litDiyas.length > 0 && (
+          <section className="mt-8">
+            <h2 className="font-display mb-3 text-center text-xl text-maroon">
+              🪔 Diyas lit by our donors
+            </h2>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-3 rounded-2xl border border-gold/25 bg-gradient-to-b from-white to-gold/10 px-4 py-5 shadow-sm">
+              {litDiyas.map((d) => (
+                <div key={d.id} className="flex w-16 flex-col items-center">
+                  <Diya size={28} />
+                  <p className="mt-1 w-full truncate text-center text-[10px] text-ink/60">
+                    {d.name.split(" ")[0]}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {topCollectors.length > 0 && (
           <section className="mt-8">

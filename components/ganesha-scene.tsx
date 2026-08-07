@@ -19,7 +19,13 @@ const BURST = Array.from({ length: 12 }, (_, i) => {
 
 const MAX_PUPIL_SHIFT = 3;
 
-export function GaneshaScene({ className }: { className?: string }) {
+export function GaneshaScene({
+  className,
+  onBless,
+}: {
+  className?: string;
+  onBless?: () => void;
+}) {
   const containerRef = useRef<HTMLButtonElement>(null);
   const [pupil, setPupil] = useState<PupilOffset>({ x: 0, y: 0 });
   const [blessing, setBlessing] = useState(false);
@@ -49,6 +55,7 @@ export function GaneshaScene({ className }: { className?: string }) {
     if (blessing) return;
     setBlessing(true);
     setBurstKey((k) => k + 1);
+    onBless?.();
     timeoutRef.current = setTimeout(() => setBlessing(false), 1500);
   }
 
