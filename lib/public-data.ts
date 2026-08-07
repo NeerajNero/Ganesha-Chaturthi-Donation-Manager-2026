@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSettingBool, SHOW_WALL_EXPENSES } from "@/lib/settings";
 
 // Shared by the public API routes AND the public pages so the same rules
 // apply everywhere: rejected receipts don't exist, anonymous donors are
@@ -86,7 +87,12 @@ export async function getWallData() {
   const collectorName = new Map(collectors.map((c) => [c.id, c.name]));
 
   const grandTotal = total._sum.amount ?? 0;
-  const totalSpent = expensesTotal._sum.amount ?? 0;
+
+  // Admin toggle: when off, expense data never leaves the server — neither
+  // the /wall page nor the public /api/wall response include it.
+  const showExpenses = await getSettingBool(SHOW_WALL_EXPENSES, true);
+  const totalSpent = showExpenses ? (expensesTotal._sum.amount ?? 0) : null;
+  const balance = totalSpent === null ? null : grandTotal - totalSpent;
 
   return {
     litDiyas,
@@ -98,7 +104,7 @@ export async function getWallData() {
     })),
     grandTotal,
     totalSpent,
-    balance: grandTotal - totalSpent,
+    balance,
     donations: donations.map((d) => ({
       id: d.id,
       name: d.anonymous ? ANONYMOUS_NAME : d.donorName,
@@ -106,6 +112,6 @@ export async function getWallData() {
       street: d.street,
       createdAt: d.createdAt,
     })),
-    expenses,
+    expenses: showExpenses ? expenses : [],
   };
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export const SHOW_AARTI_COUNTDOWN = "showAartiCountdown";
+export const SHOW_WALL_EXPENSES = "showWallExpenses";
 
 export async function getSettingBool(
   key: string,

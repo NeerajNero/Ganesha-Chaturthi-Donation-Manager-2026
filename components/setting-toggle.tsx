@@ -1,23 +1,33 @@
 "use client";
 
-import { useSettings, useUpdateSettings } from "@/lib/api/settings";
+import { useSettings, useUpdateSettings, type Settings } from "@/lib/api/settings";
 import { Skeleton } from "@/components/skeleton";
 
-export function CountdownToggle() {
+export function SettingToggle({
+  settingKey,
+  label,
+  onDescription,
+  offDescription,
+}: {
+  settingKey: keyof Settings;
+  label: string;
+  onDescription: string;
+  offDescription: string;
+}) {
   const settings = useSettings();
   const update = useUpdateSettings();
 
   if (settings.isPending) return <Skeleton className="h-16" />;
   if (settings.isError) return null;
 
-  const on = settings.data.showAartiCountdown;
+  const on = settings.data[settingKey];
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-gold/30 bg-white p-4 shadow-sm">
       <div className="min-w-0">
-        <p className="text-sm font-semibold">⏳ Aarti countdown</p>
+        <p className="text-sm font-semibold">{label}</p>
         <p className="text-xs text-gray-500">
-          {on ? "Visible on the public /live page" : "Hidden from the public /live page"}
+          {on ? onDescription : offDescription}
         </p>
       </div>
       <button
@@ -25,7 +35,7 @@ export function CountdownToggle() {
         role="switch"
         aria-checked={on}
         disabled={update.isPending}
-        onClick={() => update.mutate({ showAartiCountdown: !on })}
+        onClick={() => update.mutate({ [settingKey]: !on })}
         className={`relative h-8 w-14 shrink-0 rounded-full transition-colors disabled:opacity-60 ${
           on ? "bg-maroon" : "bg-gray-300"
         }`}

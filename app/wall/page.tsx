@@ -161,6 +161,7 @@ export default async function WallPage() {
           </section>
         )}
 
+        {totalSpent !== null && balance !== null && (
         <section className="mt-8">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">
             💸 Where the money went
@@ -228,6 +229,7 @@ export default async function WallPage() {
             </ul>
           )}
         </section>
+        )}
 
         <footer className="mt-8 space-y-2 text-center">
           <p className="font-display text-sm text-maroon/80">

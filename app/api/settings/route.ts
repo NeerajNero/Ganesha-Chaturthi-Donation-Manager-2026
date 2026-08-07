@@ -5,11 +5,17 @@ import {
   getSettingBool,
   setSettingBool,
   SHOW_AARTI_COUNTDOWN,
+  SHOW_WALL_EXPENSES,
 } from "@/lib/settings";
 
-const updateSettingsSchema = z.object({
-  showAartiCountdown: z.boolean(),
-});
+const updateSettingsSchema = z
+  .object({
+    showAartiCountdown: z.boolean().optional(),
+    showWallExpenses: z.boolean().optional(),
+  })
+  .refine((v) => Object.values(v).some((x) => x !== undefined), {
+    message: "Nothing to update",
+  });
 
 async function requireAdmin() {
   const session = await getSession();
@@ -22,13 +28,19 @@ async function requireAdmin() {
   return null;
 }
 
+async function readAll() {
+  const [showAartiCountdown, showWallExpenses] = await Promise.all([
+    getSettingBool(SHOW_AARTI_COUNTDOWN, true),
+    getSettingBool(SHOW_WALL_EXPENSES, true),
+  ]);
+  return { showAartiCountdown, showWallExpenses };
+}
+
 export async function GET() {
   try {
     const denied = await requireAdmin();
     if (denied) return denied;
-
-    const showAartiCountdown = await getSettingBool(SHOW_AARTI_COUNTDOWN, true);
-    return NextResponse.json({ ok: true, data: { showAartiCountdown } });
+    return NextResponse.json({ ok: true, data: await readAll() });
   } catch {
     return NextResponse.json(
       { ok: false, error: "Something went wrong. Please try again." },
@@ -51,11 +63,15 @@ export async function PATCH(req: Request) {
       );
     }
 
-    await setSettingBool(SHOW_AARTI_COUNTDOWN, parsed.data.showAartiCountdown);
-    return NextResponse.json({
-      ok: true,
-      data: { showAartiCountdown: parsed.data.showAartiCountdown },
-    });
+    const { showAartiCountdown, showWallExpenses } = parsed.data;
+    if (showAartiCountdown !== undefined) {
+      await setSettingBool(SHOW_AARTI_COUNTDOWN, showAartiCountdown);
+    }
+    if (showWallExpenses !== undefined) {
+      await setSettingBool(SHOW_WALL_EXPENSES, showWallExpenses);
+    }
+
+    return NextResponse.json({ ok: true, data: await readAll() });
   } catch {
     return NextResponse.json(
       { ok: false, error: "Something went wrong. Please try again." },
