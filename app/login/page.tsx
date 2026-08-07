@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { LoginForm } from "./_components/login-form";
 
 export default async function LoginPage() {
   const session = await getSession();
+  if (session) {
+    redirect(session.role === "ADMIN" ? "/admin" : "/collect");
+  }
 
   return (
     <main className="flex flex-1 items-center justify-center bg-cream px-4">
@@ -17,15 +21,6 @@ export default async function LoginPage() {
         <p className="mb-6 text-center text-sm text-ink/60">
           Donation collection — volunteer login
         </p>
-
-        {session && (
-          <Link
-            href={session.role === "ADMIN" ? "/admin" : "/collect"}
-            className="mb-4 block rounded-xl bg-maroon px-4 py-3 text-center text-sm font-semibold text-cream shadow active:bg-maroon/90"
-          >
-            Namaste {session.name} — go to my dashboard →
-          </Link>
-        )}
 
         <LoginForm />
 
