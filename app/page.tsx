@@ -7,7 +7,9 @@ import {
   FESTIVAL_DATES,
   GOAL_AMOUNT,
   VENUE,
+  VENUE_COORDS,
 } from "@/lib/config";
+import { mapsDirectionsUrl } from "@/lib/location";
 import { GaneshaSvg } from "@/components/ganesha-svg";
 import { Petals } from "@/components/petals";
 import { Diya } from "@/components/diya";
@@ -66,9 +68,20 @@ export default async function HomePage() {
             <span className="rounded-full bg-saffron/15 px-3 py-1.5 text-maroon">
               📅 {FESTIVAL_DATES}
             </span>
-            <span className="rounded-full bg-saffron/15 px-3 py-1.5 text-maroon">
-              📍 {VENUE}
-            </span>
+            {VENUE_COORDS ? (
+              <a
+                href={mapsDirectionsUrl(VENUE_COORDS)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-saffron/15 px-3 py-1.5 text-maroon underline underline-offset-2"
+              >
+                📍 {VENUE} →
+              </a>
+            ) : (
+              <span className="rounded-full bg-saffron/15 px-3 py-1.5 text-maroon">
+                📍 {VENUE}
+              </span>
+            )}
             <Link
               href="/live"
               className="rounded-full bg-maroon px-3 py-1.5 text-cream shadow-sm"

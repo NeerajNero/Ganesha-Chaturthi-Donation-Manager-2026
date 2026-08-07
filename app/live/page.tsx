@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { COMMITTEE_NAME, FESTIVAL_DATES, SCHEDULE, VENUE } from "@/lib/config";
+import {
+  COMMITTEE_NAME,
+  FESTIVAL_DATES,
+  SCHEDULE,
+  VENUE,
+  VENUE_COORDS,
+} from "@/lib/config";
 import { Diya } from "@/components/diya";
+import { VenueMap } from "@/components/venue-map";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +67,15 @@ export default async function LivePage() {
             </ul>
           )}
         </section>
+
+        {VENUE_COORDS && (
+          <section className="mt-8">
+            <h2 className="font-display mb-3 text-center text-xl text-maroon">
+              📍 How to reach
+            </h2>
+            <VenueMap />
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">
