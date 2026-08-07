@@ -12,12 +12,11 @@ export type Stats = {
   todayCollected: number;
   totalExpenses: number;
   balance: number;
-  expensesBySize: { MINOR: number; MID: number; MAJOR: number };
   expensesByCategory: { category: string; count: number; total: number }[];
   cashInHand: number;
   pendingUpi: { count: number; amount: number };
   byMode: { CASH: number; UPI: number };
-  byStreet: { street: string; count: number; total: number }[];
+  byDonor: { donorName: string; count: number; total: number }[];
   byVolunteer: {
     id: string;
     name: string;

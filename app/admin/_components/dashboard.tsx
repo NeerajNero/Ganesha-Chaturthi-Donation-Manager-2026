@@ -79,43 +79,27 @@ export function Dashboard() {
         <DailyChart daily={data.daily} />
       </div>
 
-      <div className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-base font-bold">Expenses by size</h2>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {(["MINOR", "MID", "MAJOR"] as const).map((s) => (
-            <div key={s} className="rounded-xl bg-cream px-2 py-3 ring-1 ring-gold/30">
-              <p className="text-xs uppercase tracking-wide text-gray-500">
-                {s.toLowerCase()}
-              </p>
-              <p className="mt-1 text-sm font-bold text-maroon">
-                {rupees(data.expensesBySize[s])}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-base font-bold">By street</h2>
-        {data.byStreet.length === 0 ? (
+        <h2 className="mb-3 text-base font-bold">Top donors</h2>
+        {data.byDonor.length === 0 ? (
           <p className="py-4 text-center text-sm text-gray-500">No data yet</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500">
-                  <th className="py-2 pr-2">Street</th>
+                  <th className="py-2 pr-2">Donor</th>
                   <th className="py-2 pr-2 text-right">Donations</th>
                   <th className="py-2 text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
-                {data.byStreet.map((s) => (
-                  <tr key={s.street} className="border-b border-gray-100">
-                    <td className="py-2.5 pr-2 font-medium">{s.street}</td>
-                    <td className="py-2.5 pr-2 text-right">{s.count}</td>
+                {data.byDonor.map((d) => (
+                  <tr key={d.donorName} className="border-b border-gray-100">
+                    <td className="py-2.5 pr-2 font-medium">{d.donorName}</td>
+                    <td className="py-2.5 pr-2 text-right">{d.count}</td>
                     <td className="py-2.5 text-right font-semibold">
-                      {rupees(s.total)}
+                      {rupees(d.total)}
                     </td>
                   </tr>
                 ))}

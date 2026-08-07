@@ -25,7 +25,7 @@ export async function GET() {
     const [
       overall,
       today,
-      byStreet,
+      byDonor,
       byMode,
       pendingUpi,
       undepositedCash,
@@ -33,7 +33,6 @@ export async function GET() {
       users,
       blessingsCounter,
       expensesTotal,
-      expensesBySize,
       expensesByCategory,
     ] = await Promise.all([
       prisma.donation.aggregate({
@@ -46,11 +45,12 @@ export async function GET() {
         where: { ...VERIFIED, createdAt: istDayRange(todayIST()) },
       }),
       prisma.donation.groupBy({
-        by: ["street"],
+        by: ["donorName"],
         where: VERIFIED,
         _sum: { amount: true },
         _count: true,
         orderBy: { _sum: { amount: "desc" } },
+        take: 20,
       }),
       prisma.donation.groupBy({
         by: ["mode"],
@@ -77,11 +77,6 @@ export async function GET() {
       prisma.user.findMany({ select: { id: true, name: true } }),
       prisma.counter.findUnique({ where: { id: "blessings" } }),
       prisma.expense.aggregate({ _sum: { amount: true } }),
-      prisma.expense.groupBy({
-        by: ["size"],
-        _sum: { amount: true },
-        _count: true,
-      }),
       prisma.expense.groupBy({
         by: ["category"],
         _sum: { amount: true },
@@ -116,8 +111,6 @@ export async function GET() {
 
     const totalCollected = overall._sum.amount ?? 0;
     const totalExpenses = expensesTotal._sum.amount ?? 0;
-    const sizeTotal = (size: "MINOR" | "MID" | "MAJOR") =>
-      expensesBySize.find((s) => s.size === size)?._sum.amount ?? 0;
 
     const data = {
       totalCollected,
@@ -127,11 +120,6 @@ export async function GET() {
       todayCollected: today._sum.amount ?? 0,
       totalExpenses,
       balance: totalCollected - totalExpenses,
-      expensesBySize: {
-        MINOR: sizeTotal("MINOR"),
-        MID: sizeTotal("MID"),
-        MAJOR: sizeTotal("MAJOR"),
-      },
       expensesByCategory: expensesByCategory.map((c) => ({
         category: c.category,
         count: c._count,
@@ -146,10 +134,10 @@ export async function GET() {
         CASH: byMode.find((m) => m.mode === "CASH")?._sum.amount ?? 0,
         UPI: byMode.find((m) => m.mode === "UPI")?._sum.amount ?? 0,
       },
-      byStreet: byStreet.map((s) => ({
-        street: s.street,
-        count: s._count,
-        total: s._sum.amount ?? 0,
+      byDonor: byDonor.map((d) => ({
+        donorName: d.donorName,
+        count: d._count,
+        total: d._sum.amount ?? 0,
       })),
       byVolunteer: byVolunteer
         .map((v) => ({
