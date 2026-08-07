@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { unwrap } from "@/lib/api/types";
 import { EXPENSES_QUERY_KEYS, STATS_QUERY_KEYS } from "@/lib/query-keys";
+import { useToast } from "@/components/toaster";
 
 export type ExpenseSize = "MINOR" | "MID" | "MAJOR";
 
@@ -90,15 +91,36 @@ function useInvalidateExpenses() {
 
 export function useCreateExpense() {
   const invalidate = useInvalidateExpenses();
-  return useMutation({ mutationFn: createExpense, onSuccess: invalidate });
+  const { show } = useToast();
+  return useMutation({
+    mutationFn: createExpense,
+    onSuccess: (data) => {
+      invalidate();
+      show(`Expense "${data.title}" added ✓`, "success");
+    },
+  });
 }
 
 export function useUpdateExpense() {
   const invalidate = useInvalidateExpenses();
-  return useMutation({ mutationFn: updateExpense, onSuccess: invalidate });
+  const { show } = useToast();
+  return useMutation({
+    mutationFn: updateExpense,
+    onSuccess: (data) => {
+      invalidate();
+      show(`Expense "${data.title}" updated ✓`, "success");
+    },
+  });
 }
 
 export function useDeleteExpense() {
   const invalidate = useInvalidateExpenses();
-  return useMutation({ mutationFn: deleteExpense, onSuccess: invalidate });
+  const { show } = useToast();
+  return useMutation({
+    mutationFn: deleteExpense,
+    onSuccess: () => {
+      invalidate();
+      show("Expense deleted", "success");
+    },
+  });
 }

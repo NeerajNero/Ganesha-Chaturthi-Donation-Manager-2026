@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { unwrap } from "@/lib/api/types";
 import { USERS_QUERY_KEYS } from "@/lib/query-keys";
+import { useToast } from "@/components/toaster";
 
 export type Volunteer = {
   id: string;
@@ -58,20 +59,31 @@ export function useVolunteers() {
 
 export function useCreateVolunteer() {
   const queryClient = useQueryClient();
+  const { show } = useToast();
   return useMutation({
     mutationFn: createVolunteer,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEYS.all });
+      show(`Volunteer "${data.name}" created ✓`, "success");
     },
   });
 }
 
 export function useUpdateVolunteer() {
   const queryClient = useQueryClient();
+  const { show } = useToast();
   return useMutation({
     mutationFn: updateVolunteer,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEYS.all });
+      show(
+        variables.password
+          ? `Password reset for "${data.name}" ✓`
+          : variables.active === false
+            ? `"${data.name}" deactivated`
+            : `"${data.name}" activated ✓`,
+        "success"
+      );
     },
   });
 }

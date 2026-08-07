@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { unwrap } from "@/lib/api/types";
 import { AUTH_QUERY_KEYS } from "@/lib/query-keys";
+import { useToast } from "@/components/toaster";
 
 export type SessionUser = {
   id: string;
@@ -31,12 +32,14 @@ async function logout(): Promise<null> {
 export function useLogin() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { show } = useToast();
 
   return useMutation({
     mutationFn: login,
     meta: { skipToast: true }, // login page shows errors inline
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.all });
+      show(`Namaste ${user.name}! 🙏`, "success");
       router.replace(user.role === "ADMIN" ? "/admin" : "/collect");
       router.refresh();
     },
@@ -46,11 +49,13 @@ export function useLogin() {
 export function useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { show } = useToast();
 
   return useMutation({
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
+      show("Logged out. See you soon 🙏", "success");
       router.replace("/login");
       router.refresh();
     },

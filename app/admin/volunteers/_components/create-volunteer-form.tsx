@@ -89,12 +89,6 @@ export function CreateVolunteerForm() {
         </p>
       </div>
 
-      {create.isSuccess && (
-        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
-          Volunteer “{create.data.name}” created
-        </p>
-      )}
-
       <button
         type="submit"
         disabled={create.isPending}

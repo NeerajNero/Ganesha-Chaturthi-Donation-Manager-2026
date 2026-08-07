@@ -7,6 +7,7 @@ import {
   STATS_QUERY_KEYS,
   STREETS_QUERY_KEYS,
 } from "@/lib/query-keys";
+import { useToast } from "@/components/toaster";
 
 export type Donation = {
   id: string;
@@ -113,11 +114,20 @@ async function updateDonation({
 // dashboard stats.
 export function useUpdateDonation() {
   const queryClient = useQueryClient();
+  const { show } = useToast();
   return useMutation({
     mutationFn: updateDonation,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: DONATIONS_QUERY_KEYS.all });
       queryClient.invalidateQueries({ queryKey: STATS_QUERY_KEYS.all });
+      show(
+        variables.cashDeposited
+          ? `${data.receiptNo} marked as deposited ✓`
+          : variables.status === "VERIFIED"
+            ? `${data.receiptNo} verified — now on the wall ✓`
+            : `${data.receiptNo} rejected`,
+        "success"
+      );
     },
   });
 }
