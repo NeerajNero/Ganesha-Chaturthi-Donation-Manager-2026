@@ -11,6 +11,7 @@ import {
 import { Diya } from "@/components/diya";
 import { VenueMap } from "@/components/venue-map";
 import { AartiCountdown } from "@/components/aarti-countdown";
+import { getSettingBool, SHOW_AARTI_COUNTDOWN } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default async function LivePage() {
-  const updates = await prisma.update.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 30,
-  });
+  const [updates, showCountdown] = await Promise.all([
+    prisma.update.findMany({ orderBy: { createdAt: "desc" }, take: 30 }),
+    getSettingBool(SHOW_AARTI_COUNTDOWN, true),
+  ]);
 
   const timeFmt = new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
@@ -44,9 +45,11 @@ export default async function LivePage() {
       <div className="garland" />
 
       <div className="mx-auto w-full max-w-lg px-4 pb-10">
-        <div className="mt-5">
-          <AartiCountdown />
-        </div>
+        {showCountdown && (
+          <div className="mt-5">
+            <AartiCountdown />
+          </div>
+        )}
 
         <section className="mt-6">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">

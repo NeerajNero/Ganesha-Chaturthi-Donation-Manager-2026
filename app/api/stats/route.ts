@@ -31,6 +31,7 @@ export async function GET() {
       undepositedCash,
       byVolunteer,
       users,
+      blessingsCounter,
       expensesTotal,
       expensesBySize,
       expensesByCategory,
@@ -74,6 +75,7 @@ export async function GET() {
         _count: true,
       }),
       prisma.user.findMany({ select: { id: true, name: true } }),
+      prisma.counter.findUnique({ where: { id: "blessings" } }),
       prisma.expense.aggregate({ _sum: { amount: true } }),
       prisma.expense.groupBy({
         by: ["size"],
@@ -120,6 +122,7 @@ export async function GET() {
     const data = {
       totalCollected,
       donationCount: overall._count,
+      blessings: blessingsCounter?.value ?? 0,
       daily,
       todayCollected: today._sum.amount ?? 0,
       totalExpenses,

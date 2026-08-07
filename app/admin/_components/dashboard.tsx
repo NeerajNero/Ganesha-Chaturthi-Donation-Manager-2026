@@ -47,6 +47,11 @@ export function Dashboard() {
       sub: "collected − spent",
       valueClass: data.balance >= 0 ? "text-green-600" : "text-red-600",
     },
+    {
+      label: "Blessings taken",
+      value: `🙏 ${data.blessings.toLocaleString("en-IN")}`,
+      sub: "taps on Bappa, running total",
+    },
   ];
 
   return (

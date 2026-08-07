@@ -25,6 +25,10 @@ export const STATS_QUERY_KEYS = {
   summary: () => [...STATS_QUERY_KEYS.all, "summary"] as const,
 };
 
+export const SETTINGS_QUERY_KEYS = {
+  all: ["settings"] as const,
+};
+
 export const PHOTOS_QUERY_KEYS = {
   all: ["photos"] as const,
   list: () => [...PHOTOS_QUERY_KEYS.all, "list"] as const,

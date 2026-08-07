@@ -41,6 +41,11 @@ enum ExpenseSize {
   MAJOR
 }
 
+model Setting {
+  key   String @id
+  value String
+}
+
 model Photo {
   id        String   @id @default(cuid())
   url       String   // Cloudinary URL

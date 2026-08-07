@@ -3,9 +3,12 @@ import { addDaysIST } from "@/lib/dates";
 
 export type NextAarti = { label: string; at: Date };
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 // Earliest future aarti within the festival window (all times IST), or null
-// once the festival is over. Pure function — unit-testable.
+// once the festival is over — or while the dates are still "TBA" in config.
 export function nextAarti(now: Date): NextAarti | null {
+  if (!DATE_RE.test(FESTIVAL_START) || !DATE_RE.test(FESTIVAL_END)) return null;
   let day = FESTIVAL_START;
   for (let i = 0; i < 60 && day <= FESTIVAL_END; i++) {
     for (const aarti of DAILY_AARTI) {
