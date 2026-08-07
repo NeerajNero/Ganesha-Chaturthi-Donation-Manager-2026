@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Yatra_One } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
@@ -18,6 +18,19 @@ const yatraOne = Yatra_One({
 export const metadata: Metadata = {
   title: `${COMMITTEE_NAME} — Donations`,
   description: "Door-to-door donation collection for Ganesh Utsav 2026",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "GU26",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#7b1e26",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

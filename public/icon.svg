@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#7b1e26"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#d4af37" stroke-width="10" opacity="0.7"/>
+  <!-- diya -->
+  <ellipse cx="256" cy="352" rx="150" ry="72" fill="#5c151c"/>
+  <ellipse cx="256" cy="336" rx="150" ry="66" fill="#9a2a33"/>
+  <path d="M106 336 A150 66 0 0 0 406 336 Z" fill="#5c151c"/>
+  <ellipse cx="256" cy="336" rx="95" ry="36" fill="#d4af37"/>
+  <ellipse cx="256" cy="296" rx="22" ry="11" fill="#2d1b12"/>
+  <!-- flame -->
+  <path d="M256 96 C220 156 214 190 214 216 A42 48 0 0 0 298 216 C298 190 292 156 256 96 Z" fill="#ff9933"/>
+  <path d="M256 148 C238 182 234 200 234 218 A22 26 0 0 0 278 218 C278 200 274 182 256 148 Z" fill="#ffd873"/>
+</svg>

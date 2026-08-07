@@ -5,6 +5,7 @@ import { getReceipt } from "@/lib/public-data";
 import { amountInWords } from "@/lib/receipt";
 import { COMMITTEE_NAME } from "@/lib/config";
 import { GaneshaSvg } from "@/components/ganesha-svg";
+import { ShareReceipt } from "@/components/share-receipt";
 
 export const dynamic = "force-dynamic";
 
@@ -98,10 +99,16 @@ export default async function ReceiptPage({
             </div>
           </div>
 
-          <div className="border-t border-dashed border-gold/60 px-6 py-4 text-center">
+          <div className="space-y-3 border-t border-dashed border-gold/60 px-6 py-4 text-center">
+            <ShareReceipt
+              receiptNo={receipt.receiptNo}
+              amount={receipt.amount}
+              committeeName={COMMITTEE_NAME}
+              url={`${process.env.NEXT_PUBLIC_APP_URL || ""}/r/${receipt.receiptNo}`}
+            />
             <Link
               href="/wall"
-              className="text-sm font-semibold text-maroon underline underline-offset-2"
+              className="block text-sm font-semibold text-maroon underline underline-offset-2"
             >
               See all donations on our transparency wall →
             </Link>

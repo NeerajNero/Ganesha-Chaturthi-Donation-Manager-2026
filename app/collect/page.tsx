@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
 import { DonationForm } from "./_components/donation-form";
 import { TodayList } from "./_components/today-list";
+import { StreetProgress } from "./_components/street-progress";
 
 export default async function CollectPage() {
   const session = await getSession();
@@ -20,6 +21,7 @@ export default async function CollectPage() {
       <main className="mx-auto w-full max-w-lg flex-1 space-y-6 px-4 py-5">
         <DonationForm />
         <TodayList />
+        <StreetProgress />
       </main>
     </div>
   );

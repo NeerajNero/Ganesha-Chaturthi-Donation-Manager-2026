@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WallPage() {
-  const { grandTotal, totalSpent, balance, donations, expenses } =
+  const { grandTotal, totalSpent, balance, donations, expenses, topCollectors } =
     await getWallData();
   const progress = Math.min(100, Math.round((grandTotal / GOAL_AMOUNT) * 100));
 
@@ -86,6 +86,37 @@ export default async function WallPage() {
             </ul>
           )}
         </section>
+
+        {topCollectors.length > 0 && (
+          <section className="mt-8">
+            <h2 className="font-display mb-3 text-center text-xl text-maroon">
+              🏆 Top collectors
+            </h2>
+            <ul className="space-y-2">
+              {topCollectors.map((c, i) => (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white px-4 py-3 shadow-sm"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="text-xl">
+                      {["🥇", "🥈", "🥉"][i] ?? "🎖️"}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{c.name}</p>
+                      <p className="text-xs text-ink/50">
+                        {c.count} donation{c.count === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="shrink-0 font-bold text-maroon">
+                    ₹{c.total.toLocaleString("en-IN")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">

@@ -54,6 +54,13 @@ async function fetchStreets(): Promise<string[]> {
   return unwrap<string[]>(res);
 }
 
+export type StreetProgress = { street: string; count: number; total: number };
+
+async function fetchStreetProgress(): Promise<StreetProgress[]> {
+  const res = await fetch("/api/streets/progress");
+  return unwrap<StreetProgress[]>(res);
+}
+
 async function createDonation(body: CreateDonationInput): Promise<Donation> {
   const res = await fetch("/api/donations", {
     method: "POST",
@@ -74,6 +81,13 @@ export function useStreets() {
   return useQuery({
     queryKey: STREETS_QUERY_KEYS.list(),
     queryFn: fetchStreets,
+  });
+}
+
+export function useStreetProgress() {
+  return useQuery({
+    queryKey: STREETS_QUERY_KEYS.progress(),
+    queryFn: fetchStreetProgress,
   });
 }
 

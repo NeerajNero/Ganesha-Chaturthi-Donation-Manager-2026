@@ -57,10 +57,31 @@ export async function getWallData() {
     prisma.expense.aggregate({ _sum: { amount: true } }),
   ]);
 
+  // Top collectors leaderboard — volunteer first names + verified totals only.
+  const topRows = await prisma.donation.groupBy({
+    by: ["collectedById"],
+    where: { status: "VERIFIED" },
+    _sum: { amount: true },
+    _count: true,
+    orderBy: { _sum: { amount: "desc" } },
+    take: 5,
+  });
+  const collectors = await prisma.user.findMany({
+    where: { id: { in: topRows.map((r) => r.collectedById) } },
+    select: { id: true, name: true },
+  });
+  const collectorName = new Map(collectors.map((c) => [c.id, c.name]));
+
   const grandTotal = total._sum.amount ?? 0;
   const totalSpent = expensesTotal._sum.amount ?? 0;
 
   return {
+    topCollectors: topRows.map((r) => ({
+      id: r.collectedById,
+      name: collectorName.get(r.collectedById) ?? "Volunteer",
+      count: r._count,
+      total: r._sum.amount ?? 0,
+    })),
     grandTotal,
     totalSpent,
     balance: grandTotal - totalSpent,

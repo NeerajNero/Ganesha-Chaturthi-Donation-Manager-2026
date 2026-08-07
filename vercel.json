@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/broadcast/summary",
+      "schedule": "30 14 * * *"
+    }
+  ]
+}

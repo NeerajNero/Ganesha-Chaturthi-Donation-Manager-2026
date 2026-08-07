@@ -55,6 +55,7 @@ Useful scripts: `npm run db:studio` (Prisma Studio), `npm run lint`,
 | `ADMIN_NAME` | ✅ (seed) | Display name, e.g. `Neeraj Sharma`. |
 | `TELEGRAM_BOT_TOKEN` | optional | Chat with **@BotFather** → `/newbot` → copy the token. Add the bot to your channel as an **admin** (needs "Post messages"). |
 | `TELEGRAM_CHANNEL_ID` | optional | Public channel: `@yourchannel`. Private channel: forward a channel post to **@userinfobot** and use the `-100…` id. |
+| `CRON_SECRET` | optional | Random string (`openssl rand -hex 24`). When set on Vercel, the daily 8pm IST cron (see `vercel.json`) authenticates with it and posts the Telegram summary automatically. |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | optional | Cloudinary dashboard → account **Cloud name**. |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | optional | Cloudinary → Settings → Upload → **Add upload preset** → Signing mode: **Unsigned**. Uploads go straight from the browser; the server stores only the URL. |
 | `NEXT_PUBLIC_UPI_ID` | optional | Committee UPI VPA, e.g. `gu2026@oksbi`. Without it the UPI QR is hidden. |
@@ -120,6 +121,13 @@ password later).
 7. Dashboard → 📢 Send summary to Telegram.
 
 ## Operational notes
+
+- **Daily summary cron**: `vercel.json` schedules `GET /api/broadcast/summary`
+  at 14:30 UTC (8pm IST). Vercel sends `Authorization: Bearer <CRON_SECRET>`
+  automatically when the `CRON_SECRET` env var exists on the project. On the
+  Hobby plan, cron timing can drift within the hour.
+- **PWA**: volunteers can "Add to Home Screen" — the app installs with the
+  diya icon and opens full-screen straight to `/collect`.
 
 - **Rate limits are in-memory** (login: 5 fails/username/15 min; broadcast:
   1 per 2 min). On Vercel each serverless instance has its own memory, so

@@ -17,6 +17,7 @@ export const DONATIONS_QUERY_KEYS = {
 export const STREETS_QUERY_KEYS = {
   all: ["streets"] as const,
   list: () => [...STREETS_QUERY_KEYS.all, "list"] as const,
+  progress: () => [...STREETS_QUERY_KEYS.all, "progress"] as const,
 };
 
 export const STATS_QUERY_KEYS = {
