@@ -12,9 +12,33 @@ export type Photo = {
   createdAt: string;
 };
 
-async function fetchPhotos(): Promise<Photo[]> {
-  const res = await fetch("/api/photos");
-  return unwrap<Photo[]>(res);
+export type PhotosResponse = {
+  photos: Photo[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+};
+
+async function fetchPhotos(
+  params?: Record<string, string | number>
+): Promise<PhotosResponse> {
+  const query = params ? "?" + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : "";
+  const res = await fetch(`/api/photos${query}`);
+  const data = await unwrap<PhotosResponse | Photo[]>(res);
+
+  if (Array.isArray(data)) {
+    return {
+      photos: data,
+      total: data.length,
+      page: 1,
+      totalPages: 1,
+      limit: data.length,
+    };
+  }
+  return data;
 }
 
 async function createPhoto(body: {
@@ -34,8 +58,11 @@ async function deletePhoto(id: string): Promise<null> {
   return unwrap<null>(res);
 }
 
-export function usePhotos() {
-  return useQuery({ queryKey: PHOTOS_QUERY_KEYS.list(), queryFn: fetchPhotos });
+export function usePhotos(params?: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: PHOTOS_QUERY_KEYS.list(params),
+    queryFn: () => fetchPhotos(params),
+  });
 }
 
 export function useCreatePhoto() {

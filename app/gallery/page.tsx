@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { COMMITTEE_NAME } from "@/lib/config";
+import { GalleryImage } from "@/components/gallery-image";
+import { Pagination } from "@/components/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -9,11 +11,26 @@ export const metadata: Metadata = {
   title: `Gallery — ${COMMITTEE_NAME}`,
 };
 
-export default async function GalleryPage() {
-  const photos = await prisma.photo.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+const PAGE_SIZE = 12;
+
+interface GalleryPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+
+  const [photos, total] = await Promise.all([
+    prisma.photo.findMany({
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.photo.count(),
+  ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
   return (
     <main className="flex-1 bg-cream">
@@ -30,26 +47,31 @@ export default async function GalleryPage() {
             Photos will appear here as the festival preparations begin 🙏
           </p>
         ) : (
-          <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {photos.map((p) => (
-              <li key={p.id} className="overflow-hidden rounded-xl bg-white shadow-sm">
-                <a href={p.url} target="_blank" rel="noopener noreferrer">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.url}
-                    alt={p.caption ?? "Festival photo"}
-                    loading="lazy"
-                    className="aspect-square w-full object-cover"
-                  />
-                </a>
-                {p.caption && (
-                  <p className="truncate px-2 py-1.5 text-xs text-ink/70">
-                    {p.caption}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {photos.map((p) => (
+                <li key={p.id} className="overflow-hidden rounded-xl bg-white shadow-sm flex flex-col justify-between">
+                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="block w-full">
+                    <GalleryImage
+                      src={p.url}
+                      alt={p.caption ?? "Festival photo"}
+                    />
+                  </a>
+                  {p.caption && (
+                    <p className="truncate px-2 py-1.5 text-xs text-ink/70">
+                      {p.caption}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              baseUrl="/gallery"
+            />
+          </>
         )}
 
         <footer className="mt-8 flex items-center justify-center gap-5 text-sm">

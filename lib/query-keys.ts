@@ -31,7 +31,8 @@ export const SETTINGS_QUERY_KEYS = {
 
 export const PHOTOS_QUERY_KEYS = {
   all: ["photos"] as const,
-  list: () => [...PHOTOS_QUERY_KEYS.all, "list"] as const,
+  list: (params?: Record<string, string | number>) =>
+    [...PHOTOS_QUERY_KEYS.all, "list", params] as const,
 };
 
 export const UPDATES_QUERY_KEYS = {

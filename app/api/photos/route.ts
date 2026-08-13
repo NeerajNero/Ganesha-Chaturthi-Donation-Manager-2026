@@ -5,13 +5,38 @@ import { createPhotoSchema } from "@/lib/validators";
 import { sendTelegramMessage } from "@/lib/telegram";
 
 // Public — powers the /gallery page and the admin manager.
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const photos = await prisma.photo.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 100,
+    const { searchParams } = new URL(req.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
+    const limit = limitParam ? Math.max(1, Math.min(100, parseInt(limitParam, 10) || 12)) : 12;
+
+    const skip = (page - 1) * limit;
+
+    const [photos, total] = await Promise.all([
+      prisma.photo.findMany({
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.photo.count(),
+    ]);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return NextResponse.json({
+      ok: true,
+      data: {
+        photos,
+        total,
+        page,
+        totalPages,
+        limit,
+      },
     });
-    return NextResponse.json({ ok: true, data: photos });
   } catch {
     return NextResponse.json(
       { ok: false, error: "Something went wrong. Please try again." },

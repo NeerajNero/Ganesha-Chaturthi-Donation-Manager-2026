@@ -5,13 +5,20 @@ import { useCreatePhoto, useDeletePhoto, usePhotos } from "@/lib/api/photos";
 import { ScreenshotUpload } from "@/components/screenshot-upload";
 import { ListSkeleton } from "@/components/skeleton";
 import { FestiveSpinner } from "@/components/festive-spinner";
+import { GalleryImage } from "@/components/gallery-image";
+import { Pagination } from "@/components/pagination";
 
 export function GalleryManager() {
   const [url, setUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
-  const photos = usePhotos();
+  const [page, setPage] = useState(1);
+
+  const photos = usePhotos({ page, limit: 12 });
   const create = useCreatePhoto();
   const del = useDeletePhoto();
+
+  const photoList = photos.data?.photos ?? [];
+  const totalPages = photos.data?.totalPages ?? 1;
 
   return (
     <div className="space-y-4">
@@ -66,41 +73,46 @@ export function GalleryManager() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {photos.error.message}
         </p>
-      ) : photos.data.length === 0 ? (
+      ) : photoList.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           No photos yet — add the first one above.
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {photos.data.map((p) => (
-            <li key={p.id} className="overflow-hidden rounded-xl bg-white shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.url}
-                alt={p.caption ?? "Festival photo"}
-                loading="lazy"
-                className="aspect-square w-full object-cover"
-              />
-              <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-                <p className="min-w-0 truncate text-xs text-gray-600">
-                  {p.caption ?? "—"}
-                </p>
-                <button
-                  type="button"
-                  disabled={del.isPending}
-                  onClick={() => {
-                    if (window.confirm("Remove this photo from the gallery?")) {
-                      del.mutate(p.id);
-                    }
-                  }}
-                  className="shrink-0 text-xs font-medium text-red-600 disabled:opacity-60"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {photoList.map((p) => (
+              <li key={p.id} className="overflow-hidden rounded-xl bg-white shadow-sm flex flex-col justify-between">
+                <GalleryImage
+                  src={p.url}
+                  alt={p.caption ?? "Festival photo"}
+                />
+                <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                  <p className="min-w-0 truncate text-xs text-gray-600">
+                    {p.caption ?? "—"}
+                  </p>
+                  <button
+                    type="button"
+                    disabled={del.isPending}
+                    onClick={() => {
+                      if (window.confirm("Remove this photo from the gallery?")) {
+                        del.mutate(p.id);
+                      }
+                    }}
+                    className="shrink-0 text-xs font-medium text-red-600 disabled:opacity-60"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={(p) => setPage(p)}
+          />
+        </>
       )}
     </div>
   );
