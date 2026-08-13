@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { GalleryImage } from "@/components/gallery-image";
-import { PhotoModal } from "@/components/photo-modal";
 
 interface Photo {
   id: string;
@@ -16,17 +15,15 @@ interface GalleryGridProps {
 }
 
 export function GalleryGrid({ photos }: GalleryGridProps) {
-  const [selected, setSelected] = useState<Photo | null>(null);
-
   return (
-    <>
-      <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {photos.map((p) => (
-          <li
-            key={p.id}
-            className="group relative overflow-hidden rounded-xl bg-white shadow-sm cursor-pointer"
-            onClick={() => setSelected(p)}
-          >
+
+    <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {photos.map((p) => (
+        <li
+          key={p.id}
+          className="group relative overflow-hidden rounded-xl bg-white shadow-sm"
+        >
+          <Link href={`/gallery/${p.id}`} className="block relative cursor-pointer">
             <GalleryImage
               src={p.url}
               alt={p.caption ?? "Festival photo"}
@@ -43,21 +40,10 @@ export function GalleryGrid({ photos }: GalleryGridProps) {
                 🤍 {p.likeCount}
               </span>
             </div>
-
-
-          </li>
-        ))}
-      </ul>
-
-      {selected && (
-        <PhotoModal
-          photoId={selected.id}
-          photoUrl={selected.url}
-          caption={selected.caption}
-          initialLikeCount={selected.likeCount}
-          onClose={() => setSelected(null)}
-        />
-      )}
-    </>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
+
