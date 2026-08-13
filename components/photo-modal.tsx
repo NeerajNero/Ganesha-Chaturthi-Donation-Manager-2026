@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { LikeButton } from "@/components/like-button";
 import { CommentList } from "@/components/comment-list";
 import { CommentForm } from "@/components/comment-form";
@@ -21,13 +21,11 @@ export function PhotoModal({
   onClose,
 }: PhotoModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Close on Escape key (but only if not in fullscreen — browser handles fs Escape)
+  // Close on Escape key
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && !document.fullscreenElement) onClose();
+      if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -40,29 +38,6 @@ export function PhotoModal({
       document.body.style.overflow = "";
     };
   }, []);
-
-  // Sync fullscreen state with browser events
-  useEffect(() => {
-    function onFsChange() {
-      setIsFullscreen(!!document.fullscreenElement);
-    }
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
-  }, []);
-
-  const handleFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement) {
-        // Wrap img in a container so it fills the screen with black background
-        await imgRef.current?.requestFullscreen?.();
-      } else {
-        await document.exitFullscreen?.();
-      }
-    } catch {
-      // Fullscreen not supported — open in new tab as fallback
-      window.open(photoUrl, "_blank", "noopener,noreferrer");
-    }
-  }, [photoUrl]);
 
   return (
     /* Backdrop */
@@ -100,38 +75,28 @@ export function PhotoModal({
           <div className="group relative overflow-hidden rounded-2xl bg-black shadow-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              ref={imgRef}
               src={photoUrl}
               alt={caption ?? "Festival photo"}
               className="w-full max-h-72 object-contain"
               style={{ background: "#000" }}
             />
 
-            {/* Fullscreen button — visible on hover (desktop) / always on mobile */}
-            <button
-              type="button"
-              onClick={handleFullscreen}
-              aria-label={isFullscreen ? "Exit fullscreen" : "View fullscreen"}
+            {/* Open full size button — visible on hover (desktop) / always on mobile */}
+            <a
+              href={photoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View full size"
               className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-xl bg-black/50 text-white backdrop-blur-sm transition-all hover:bg-black/70 active:scale-90 sm:opacity-0 sm:group-hover:opacity-100"
             >
-              {isFullscreen ? (
-                /* Compress icon */
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
-                  <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
-                  <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
-                  <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
-                </svg>
-              ) : (
-                /* Expand icon */
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 8V5a2 2 0 0 1 2-2h3"/>
-                  <path d="M21 8V5a2 2 0 0 1-2-2h-3"/>
-                  <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
-                  <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
-                </svg>
-              )}
-            </button>
+              {/* Expand icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 8V5a2 2 0 0 1 2-2h3"/>
+                <path d="M21 8V5a2 2 0 0 1-2-2h-3"/>
+                <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+                <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
+              </svg>
+            </a>
           </div>
 
           {/* Caption + Like */}

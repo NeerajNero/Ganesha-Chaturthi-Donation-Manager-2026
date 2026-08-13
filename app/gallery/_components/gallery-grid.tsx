@@ -33,7 +33,7 @@ export function GalleryGrid({ photos }: GalleryGridProps) {
             />
 
             {/* Bottom overlay: caption + like count */}
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent px-2 pt-6 pb-2 opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-100">
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-black/80 to-transparent px-2 pt-8 pb-2 opacity-100">
               {p.caption && (
                 <p className="truncate text-[11px] font-medium text-white/90">
                   {p.caption}
@@ -44,12 +44,7 @@ export function GalleryGrid({ photos }: GalleryGridProps) {
               </span>
             </div>
 
-            {/* Tap indicator for mobile */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 active:opacity-100 sm:hidden transition-opacity">
-              <div className="rounded-full bg-black/30 px-3 py-1.5 text-[11px] font-semibold text-white">
-                Tap to view
-              </div>
-            </div>
+
           </li>
         ))}
       </ul>
