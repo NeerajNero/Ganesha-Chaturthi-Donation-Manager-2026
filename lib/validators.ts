@@ -99,3 +99,21 @@ export const updateUserSchema = z
   .refine((v) => v.active !== undefined || v.password !== undefined, {
     message: "Nothing to update",
   });
+
+export const createCommentSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(50, "Name must be at most 50 characters"),
+  body: z
+    .string()
+    .trim()
+    .min(2, "Comment must be at least 2 characters")
+    .max(280, "Comment must be under 280 characters"),
+  fingerprint: z
+    .string()
+    .uuid("Invalid fingerprint")
+    .min(1, "Fingerprint is required"),
+});
+

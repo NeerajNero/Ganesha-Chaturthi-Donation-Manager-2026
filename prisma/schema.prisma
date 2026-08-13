@@ -47,10 +47,43 @@ model Setting {
 }
 
 model Photo {
-  id        String   @id @default(cuid())
-  url       String   // Cloudinary URL
+  id        String         @id @default(cuid())
+  url       String         // Cloudinary URL
   caption   String?
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
+  likes     PhotoLike[]
+  comments  PhotoComment[]
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PhotoLike {
+  id          String   @id @default(cuid())
+  photoId     String
+  photo       Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  fingerprint String   // browser UUID stored in localStorage
+  createdAt   DateTime @default(now())
+
+  @@unique([photoId, fingerprint])
+  @@index([photoId])
+}
+
+model PhotoComment {
+  id          String        @id @default(cuid())
+  photoId     String
+  photo       Photo         @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  fingerprint String        // browser UUID for rate limiting
+  name        String        // commenter's display name (max 50 chars)
+  body        String        // comment text (max 280 chars)
+  status      CommentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  @@index([photoId, status])
+  @@index([fingerprint])
 }
 
 model Update {

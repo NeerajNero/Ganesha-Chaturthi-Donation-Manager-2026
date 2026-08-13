@@ -35,6 +35,17 @@ export const PHOTOS_QUERY_KEYS = {
     [...PHOTOS_QUERY_KEYS.all, "list", params] as const,
 };
 
+export const PHOTO_LIKES_QUERY_KEYS = {
+  all: ["photo-likes"] as const,
+  photo: (photoId: string) => [...PHOTO_LIKES_QUERY_KEYS.all, photoId] as const,
+};
+
+export const PHOTO_COMMENTS_QUERY_KEYS = {
+  all: ["photo-comments"] as const,
+  photo: (photoId: string) => [...PHOTO_COMMENTS_QUERY_KEYS.all, photoId] as const,
+  pending: () => [...PHOTO_COMMENTS_QUERY_KEYS.all, "pending"] as const,
+};
+
 export const UPDATES_QUERY_KEYS = {
   all: ["updates"] as const,
   list: () => [...UPDATES_QUERY_KEYS.all, "list"] as const,

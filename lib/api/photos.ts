@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { unwrap } from "@/lib/api/types";
-import { PHOTOS_QUERY_KEYS } from "@/lib/query-keys";
+import { PHOTOS_QUERY_KEYS, PHOTO_LIKES_QUERY_KEYS } from "@/lib/query-keys";
 import { useToast } from "@/components/toaster";
 
 export type Photo = {
@@ -85,6 +85,43 @@ export function useDeletePhoto() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PHOTOS_QUERY_KEYS.all });
       show("Photo removed", "success");
+    },
+  });
+}
+
+export type LikeStatus = { count: number; liked: boolean };
+
+async function fetchPhotoLikes(photoId: string, fingerprint: string): Promise<LikeStatus> {
+  const res = await fetch(
+    `/api/photos/${photoId}/likes?fingerprint=${encodeURIComponent(fingerprint)}`
+  );
+  return unwrap<LikeStatus>(res);
+}
+
+async function likePhoto(args: { photoId: string; fingerprint: string }): Promise<LikeStatus> {
+  const res = await fetch(`/api/photos/${args.photoId}/likes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fingerprint: args.fingerprint }),
+  });
+  return unwrap<LikeStatus>(res);
+}
+
+export function usePhotoLikes(photoId: string, fingerprint: string) {
+  return useQuery({
+    queryKey: PHOTO_LIKES_QUERY_KEYS.photo(photoId),
+    queryFn: () => fetchPhotoLikes(photoId, fingerprint),
+    enabled: !!photoId && !!fingerprint,
+    staleTime: 30_000,
+  });
+}
+
+export function useLikePhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: likePhoto,
+    onSuccess: (data, vars) => {
+      queryClient.setQueryData(PHOTO_LIKES_QUERY_KEYS.photo(vars.photoId), data);
     },
   });
 }

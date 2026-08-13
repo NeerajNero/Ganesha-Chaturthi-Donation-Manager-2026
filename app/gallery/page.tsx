@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { COMMITTEE_NAME } from "@/lib/config";
-import { GalleryImage } from "@/components/gallery-image";
 import { Pagination } from "@/components/pagination";
+import { GalleryGrid } from "./_components/gallery-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +21,24 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  const [photos, total] = await Promise.all([
+  const [rawPhotos, total] = await Promise.all([
     prisma.photo.findMany({
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
+      include: {
+        _count: { select: { likes: true } },
+      },
     }),
     prisma.photo.count(),
   ]);
+
+  const photos = rawPhotos.map((p) => ({
+    id: p.id,
+    url: p.url,
+    caption: p.caption,
+    likeCount: p._count.likes,
+  }));
 
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
@@ -48,23 +58,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           </p>
         ) : (
           <>
-            <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {photos.map((p) => (
-                <li key={p.id} className="overflow-hidden rounded-xl bg-white shadow-sm flex flex-col justify-between">
-                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="block w-full">
-                    <GalleryImage
-                      src={p.url}
-                      alt={p.caption ?? "Festival photo"}
-                    />
-                  </a>
-                  {p.caption && (
-                    <p className="truncate px-2 py-1.5 text-xs text-ink/70">
-                      {p.caption}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <GalleryGrid photos={photos} />
 
             <Pagination
               currentPage={page}
