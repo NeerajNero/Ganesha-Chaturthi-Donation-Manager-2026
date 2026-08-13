@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
 import { DonationForm } from "./_components/donation-form";
@@ -15,7 +16,15 @@ export default async function CollectPage() {
             <p className="font-display text-base text-maroon">🙏 GU26 Collect</p>
             <p className="truncate text-xs text-gray-500">{session?.name}</p>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 active:bg-gray-100"
+            >
+              🏠 Home
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-lg flex-1 space-y-6 px-4 py-5">

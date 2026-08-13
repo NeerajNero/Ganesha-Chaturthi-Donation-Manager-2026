@@ -33,13 +33,26 @@ export default async function HomePage() {
       <div className="garland" />
 
       {session && (
-        <div className="relative mx-auto mt-3 w-full max-w-lg px-4">
+        <div className="relative mx-auto mt-3 w-full max-w-lg px-4 space-y-2">
           <Link
-            href={session.role === "ADMIN" ? "/admin" : "/collect"}
-            className="block rounded-xl bg-maroon px-4 py-2.5 text-center text-sm font-semibold text-cream shadow"
+            href="/collect"
+            className="block w-full rounded-xl bg-marigold px-4 py-3 text-center text-sm font-bold text-maroon shadow-sm"
           >
-            Namaste {session.name} — go to my dashboard →
+            ➕ Add a Donation
           </Link>
+          {session.role === "ADMIN" && (
+            <Link
+              href="/admin"
+              className="block w-full rounded-xl bg-maroon px-4 py-2.5 text-center text-sm font-semibold text-cream shadow-sm"
+            >
+              Namaste {session.name} — go to admin dashboard →
+            </Link>
+          )}
+          {session.role === "VOLUNTEER" && (
+            <p className="text-center text-xs font-medium text-ink/50 pt-1">
+              Namaste {session.name} 🙏
+            </p>
+          )}
         </div>
       )}
 
