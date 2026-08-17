@@ -77,6 +77,7 @@ export function Dashboard() {
       <div className="rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-base font-bold">Last 10 days</h2>
         <DailyChart daily={data.daily} />
+        <PaceCard daily={data.daily} totalCollected={data.totalCollected} goal={400_000} />
       </div>
 
       <section className="rounded-2xl bg-white p-4 shadow-sm">
@@ -173,6 +174,52 @@ function DailyChart({ daily }: { daily: { date: string; total: number }[] }) {
           <span className="text-[10px] text-gray-500">{d.date.slice(8)}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PaceCard({
+  daily,
+  totalCollected,
+  goal,
+}: {
+  daily: { date: string; total: number }[];
+  totalCollected: number;
+  goal: number;
+}) {
+  const remaining = Math.max(0, goal - totalCollected);
+  if (remaining === 0) {
+    return (
+      <p className="mt-3 text-center text-sm font-semibold text-green-600">
+        🎊 Goal achieved! Ganpati Bappa Morya!
+      </p>
+    );
+  }
+
+  // 7-day average from the last 7 entries.
+  const last7 = daily.slice(-7);
+  const avg7 = last7.reduce((s, d) => s + d.total, 0) / Math.max(last7.length, 1);
+
+  if (avg7 <= 0) {
+    return (
+      <p className="mt-3 text-center text-xs text-gray-400">
+        No recent collections to project pace.
+      </p>
+    );
+  }
+
+  const daysLeft = Math.ceil(remaining / avg7);
+  const onTrack = daysLeft <= 30; // arbitrary "on track" threshold
+
+  return (
+    <div className={`mt-4 rounded-xl px-4 py-3 text-center ${onTrack ? "bg-green-50" : "bg-amber-50"}`}>
+      <p className={`text-sm font-semibold ${onTrack ? "text-green-700" : "text-amber-700"}`}>
+        {onTrack ? "📈 On track 🎯" : "⚠️ Behind pace"}
+      </p>
+      <p className="mt-0.5 text-xs text-gray-500">
+        7-day avg ₹{Math.round(avg7).toLocaleString("en-IN")}/day ·{" "}
+        goal in ~{daysLeft} day{daysLeft === 1 ? "" : "s"} at this pace
+      </p>
     </div>
   );
 }

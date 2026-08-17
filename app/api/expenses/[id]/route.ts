@@ -1,28 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
 import { updateExpenseSchema } from "@/lib/validators";
-
-async function requireAdmin() {
-  const session = await getSession();
-  if (!session) {
-    return {
-      error: NextResponse.json(
-        { ok: false, error: "Not logged in" },
-        { status: 401 }
-      ),
-    };
-  }
-  if (session.role !== "ADMIN") {
-    return {
-      error: NextResponse.json(
-        { ok: false, error: "Admin access required" },
-        { status: 403 }
-      ),
-    };
-  }
-  return { session };
-}
+import { requireAdmin } from "@/lib/api/server-auth";
 
 export async function PATCH(
   req: Request,

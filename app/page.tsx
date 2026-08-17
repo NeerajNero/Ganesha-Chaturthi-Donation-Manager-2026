@@ -13,6 +13,7 @@ import { mapsDirectionsUrl } from "@/lib/location";
 import { Petals } from "@/components/petals";
 import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
+import { MilestoneConfetti } from "@/components/milestone-confetti";
 import { BlessingGanesha } from "@/components/blessing-ganesha";
 
 export const dynamic = "force-dynamic";
@@ -109,7 +110,8 @@ export default async function HomePage() {
         {/* Donation section — hidden when admin toggles it off */}
         {donationSectionVisible && (
           <>
-            <div className="mt-6">
+          <div className="relative mt-6">
+              <MilestoneConfetti active={progress >= 25} />
               <MilestoneBanner progress={progress} />
             </div>
 

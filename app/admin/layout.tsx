@@ -4,6 +4,7 @@ import { LogoutButton } from "@/components/logout-button";
 const NAV_LINKS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/donations", label: "Donations" },
+  { href: "/admin/receipts", label: "Receipts" },
   { href: "/admin/expenses", label: "Expenses" },
   { href: "/admin/volunteers", label: "Volunteers" },
   { href: "/admin/gallery", label: "Gallery" },

@@ -6,6 +6,8 @@ import { COMMITTEE_NAME, GOAL_AMOUNT, PATRON_THRESHOLD } from "@/lib/config";
 import { CountUp } from "@/components/count-up";
 import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
+import { MilestoneConfetti } from "@/components/milestone-confetti";
+import { DonationSearch } from "./_components/donation-search";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +44,8 @@ export default async function WallPage() {
       <div className="garland" />
 
       <div className="mx-auto w-full max-w-lg px-4 pb-10">
-        <div className="mt-5">
+        <div className="relative mt-5">
+          <MilestoneConfetti active={progress >= 25} />
           <MilestoneBanner progress={progress} />
         </div>
         <section className="mt-5 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
@@ -66,6 +69,8 @@ export default async function WallPage() {
             {progress}% of goal
           </p>
         </section>
+
+        <DonationSearch donations={donations} />
 
         <section className="mt-7">
           <h2 className="font-display mb-3 text-center text-xl text-maroon">

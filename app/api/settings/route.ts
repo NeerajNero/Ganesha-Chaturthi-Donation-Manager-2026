@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/api/server-auth";
+import { revalidateTag } from "next/cache";
 import {
   getSettingBool,
   setSettingBool,
@@ -19,17 +20,6 @@ const updateSettingsSchema = z
     message: "Nothing to update",
   });
 
-async function requireAdmin() {
-  const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
-    return NextResponse.json(
-      { ok: false, error: session ? "Admin access required" : "Not logged in" },
-      { status: session ? 403 : 401 }
-    );
-  }
-  return null;
-}
-
 async function readAll() {
   const [showAartiCountdown, showWallExpenses, donationSectionVisible] = await Promise.all([
     getSettingBool(SHOW_AARTI_COUNTDOWN, true),
@@ -41,8 +31,8 @@ async function readAll() {
 
 export async function GET() {
   try {
-    const denied = await requireAdmin();
-    if (denied) return denied;
+    const { error } = await requireAdmin();
+    if (error) return error;
     return NextResponse.json({ ok: true, data: await readAll() });
   } catch {
     return NextResponse.json(
@@ -54,8 +44,8 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
-    const denied = await requireAdmin();
-    if (denied) return denied;
+    const { error } = await requireAdmin();
+    if (error) return error;
 
     const body = await req.json().catch(() => null);
     const parsed = updateSettingsSchema.safeParse(body);
@@ -76,6 +66,9 @@ export async function PATCH(req: Request) {
     if (donationSectionVisible !== undefined) {
       await setSettingBool(DONATION_SECTION_VISIBLE, donationSectionVisible);
     }
+
+    // Bust the settings cache so public pages pick up the change immediately.
+    revalidateTag("settings", {});
 
     return NextResponse.json({ ok: true, data: await readAll() });
   } catch {

@@ -132,6 +132,28 @@ export function useUpdateDonation() {
   });
 }
 
+async function bulkVerify(ids: string[]): Promise<{ count: number }> {
+  const res = await fetch("/api/donations/bulk-verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  return unwrap<{ count: number }>(res);
+}
+
+export function useBulkVerify() {
+  const queryClient = useQueryClient();
+  const { show } = useToast();
+  return useMutation({
+    mutationFn: bulkVerify,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: DONATIONS_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: STATS_QUERY_KEYS.all });
+      show(`${data.count} donation${data.count === 1 ? "" : "s"} verified ✓`, "success");
+    },
+  });
+}
+
 // Optimistically prepends to the "my collections today" list, rolls back on
 // error, and reconciles with the server on settle.
 export function useCreateDonation() {

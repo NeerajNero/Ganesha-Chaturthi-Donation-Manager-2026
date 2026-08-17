@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSettingBool, SHOW_WALL_EXPENSES, DONATION_SECTION_VISIBLE } from "@/lib/settings";
+import { unstable_cache } from "next/cache";
 
 // Shared by the public API routes AND the public pages so the same rules
 // apply everywhere: rejected receipts don't exist, anonymous donors are
@@ -24,8 +24,33 @@ export async function getReceipt(receiptNo: string) {
 
 export const ANONYMOUS_NAME = "A Well-Wisher";
 
+// Cache setting reads for 60 s; busted immediately when admin toggles via
+// revalidateTag("settings") in the PATCH /api/settings handler.
+const getCachedSettings = unstable_cache(
+  async () => {
+    const { getSettingBool, SHOW_WALL_EXPENSES, DONATION_SECTION_VISIBLE } =
+      await import("@/lib/settings");
+    const [showExpenses, donationSectionVisible] = await Promise.all([
+      getSettingBool(SHOW_WALL_EXPENSES, true),
+      getSettingBool(DONATION_SECTION_VISIBLE, true),
+    ]);
+    return { showExpenses, donationSectionVisible };
+  },
+  ["settings"],
+  { revalidate: 60, tags: ["settings"] }
+);
+
 export async function getWallData(isLoggedIn = false) {
-  const [donations, total, expenses, expensesTotal] = await Promise.all([
+  // All 6 DB queries run in parallel — litRows and topRows were previously
+  // sequential after the main Promise.all.
+  const [
+    donations,
+    total,
+    expenses,
+    expensesTotal,
+    litRows,
+    topRows,
+  ] = await Promise.all([
     prisma.donation.findMany({
       where: { status: "VERIFIED" },
       orderBy: { createdAt: "desc" },
@@ -57,25 +82,24 @@ export async function getWallData(isLoggedIn = false) {
       },
     }),
     prisma.expense.aggregate({ _sum: { amount: true } }),
+    // Diyas lit by donors from their receipts (anonymous respected).
+    prisma.donation.findMany({
+      where: { status: "VERIFIED", diyaLit: true },
+      orderBy: { createdAt: "desc" },
+      take: 60,
+      select: { id: true, donorName: true, anonymous: true },
+    }),
+    // Top collectors leaderboard — volunteer first names + verified totals only.
+    prisma.donation.groupBy({
+      by: ["collectedById"],
+      where: { status: "VERIFIED" },
+      _sum: { amount: true },
+      _count: true,
+      orderBy: { _sum: { amount: "desc" } },
+      take: 5,
+    }),
   ]);
 
-  // Diyas lit by donors from their receipts (anonymous respected).
-  const litRows = await prisma.donation.findMany({
-    where: { status: "VERIFIED", diyaLit: true },
-    orderBy: { createdAt: "desc" },
-    take: 60,
-    select: { id: true, donorName: true, anonymous: true },
-  });
-
-  // Top collectors leaderboard — volunteer first names + verified totals only.
-  const topRows = await prisma.donation.groupBy({
-    by: ["collectedById"],
-    where: { status: "VERIFIED" },
-    _sum: { amount: true },
-    _count: true,
-    orderBy: { _sum: { amount: "desc" } },
-    take: 5,
-  });
   const collectors = await prisma.user.findMany({
     where: { id: { in: topRows.map((r) => r.collectedById) } },
     select: { id: true, name: true },
@@ -84,14 +108,10 @@ export async function getWallData(isLoggedIn = false) {
 
   const grandTotal = total._sum.amount ?? 0;
 
-  // Admin toggle: when off, expense data never leaves the server — neither
-  // the /wall page nor the public /api/wall response include it.
-  const showExpenses = await getSettingBool(SHOW_WALL_EXPENSES, true);
+  // Read settings from cache (60s TTL, busted on admin toggle).
+  const { showExpenses, donationSectionVisible } = await getCachedSettings();
   const totalSpent = showExpenses ? (expensesTotal._sum.amount ?? 0) : null;
   const balance = totalSpent === null ? null : grandTotal - totalSpent;
-
-  // Admin toggle: when off, the donation section is hidden from the public home page.
-  const donationSectionVisible = await getSettingBool(DONATION_SECTION_VISIBLE, true);
 
   // When the visitor is not logged in, mask all real donor names as "A Well-Wisher".
   const maskName = (name: string) => (isLoggedIn ? name : ANONYMOUS_NAME);

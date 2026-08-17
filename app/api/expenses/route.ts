@@ -1,32 +1,11 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
 import { createExpenseSchema } from "@/lib/validators";
 import { istDayRange } from "@/lib/dates";
+import { requireAdmin } from "@/lib/api/server-auth";
 
 const SIZES = ["MINOR", "MID", "MAJOR"] as const;
-
-async function requireAdmin() {
-  const session = await getSession();
-  if (!session) {
-    return {
-      error: NextResponse.json(
-        { ok: false, error: "Not logged in" },
-        { status: 401 }
-      ),
-    };
-  }
-  if (session.role !== "ADMIN") {
-    return {
-      error: NextResponse.json(
-        { ok: false, error: "Admin access required" },
-        { status: 403 }
-      ),
-    };
-  }
-  return { session };
-}
 
 export async function GET(req: Request) {
   try {
