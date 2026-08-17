@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useDonations } from "@/lib/api/donations";
+import { useState } from "react";
+import { usePaginatedDonations } from "@/lib/api/donations";
 import { ListSkeleton } from "@/components/skeleton";
 import { Pagination } from "@/components/pagination";
 import { COMMITTEE_NAME } from "@/lib/config";
@@ -12,27 +12,20 @@ const PAGE_SIZE = 15;
 export function ReceiptSender() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const donations = useDonations({ status: "VERIFIED" });
   const [copied, setCopied] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (!donations.data) return [];
-    const q = query.toLowerCase().trim();
-    if (!q) return donations.data;
-    return donations.data.filter(
-      (d) =>
-        d.donorName.toLowerCase().includes(q) ||
-        d.receiptNo.toLowerCase().includes(q) ||
-        (d.mobile ?? "").includes(q) ||
-        d.street.toLowerCase().includes(q)
-    );
-  }, [donations.data, query]);
+  const params: Record<string, string | number> = {
+    status: "VERIFIED",
+    page,
+    limit: PAGE_SIZE,
+  };
+  if (query.trim()) params.q = query.trim();
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
-  const paginatedDonations = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, page]);
+  const donationsQuery = usePaginatedDonations(params);
+
+  const donations = donationsQuery.data?.donations ?? [];
+  const total = donationsQuery.data?.total ?? 0;
+  const totalPages = donationsQuery.data?.totalPages ?? 1;
 
   async function copyLink(receiptNo: string) {
     const url = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/r/${receiptNo}`;
@@ -58,24 +51,24 @@ export function ReceiptSender() {
         className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
       />
 
-      {donations.isPending ? (
+      {donationsQuery.isPending ? (
         <ListSkeleton rows={5} rowClassName="h-20" />
-      ) : donations.isError ? (
+      ) : donationsQuery.isError ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {donations.error.message}
+          {donationsQuery.error.message}
         </p>
-      ) : filtered.length === 0 ? (
+      ) : donations.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           {query ? "No donors match your search." : "No verified donations yet."}
         </p>
       ) : (
         <>
           <p className="text-xs text-gray-500">
-            {filtered.length} result{filtered.length === 1 ? "" : "s"}
+            {total} result{total === 1 ? "" : "s"}
             {query && ` for "${query}"`}
           </p>
           <ul className="space-y-2">
-            {paginatedDonations.map((d) => {
+            {donations.map((d) => {
               const receiptUrl = `${process.env.NEXT_PUBLIC_APP_URL || ""}/r/${d.receiptNo}`;
               const waText = encodeURIComponent(
                 `🙏 Namaste ${d.donorName}! Your donation receipt for ₹${d.amount.toLocaleString("en-IN")} to ${COMMITTEE_NAME} is ready.\n\nReceipt No: ${d.receiptNo}\nView & share: ${receiptUrl}\n\nGanpati Bappa Morya! 🎉`

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
-  useDonations,
+  usePaginatedDonations,
   useUpdateDonation,
   useBulkVerify,
   type Donation,
@@ -26,18 +26,21 @@ export function DonationsManager() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
 
-  const params: Record<string, string> = {};
+  const params: Record<string, string | number> = {
+    page,
+    limit: PAGE_SIZE,
+  };
   if (street) params.street = street;
   if (mode) params.mode = mode;
   if (status) params.status = status;
   if (volunteerId) params.volunteerId = volunteerId;
   if (date) params.date = date;
 
-  const donations = useDonations(params);
+  const donationsQuery = usePaginatedDonations(params);
   const volunteers = useVolunteers();
   const bulkVerify = useBulkVerify();
 
-  const hasFilters = Object.keys(params).length > 0;
+  const hasFilters = Boolean(street || mode || status || volunteerId || date);
 
   // Reset page when filter inputs change
   const handleFilterChange = (setter: (val: string) => void, val: string) => {
@@ -45,10 +48,14 @@ export function DonationsManager() {
     setPage(1);
   };
 
+  const donations = donationsQuery.data?.donations ?? [];
+  const total = donationsQuery.data?.total ?? 0;
+  const totalAmount = donationsQuery.data?.totalAmount ?? 0;
+  const totalPages = donationsQuery.data?.totalPages ?? 1;
+
   // Only pending UPI donations can be bulk-verified.
   const pendingUpiIds =
-    donations.data?.filter((d) => d.status === "PENDING" && d.mode === "UPI").map((d) => d.id) ??
-    [];
+    donations.filter((d) => d.status === "PENDING" && d.mode === "UPI").map((d) => d.id);
   const allPendingSelected =
     pendingUpiIds.length > 0 && pendingUpiIds.every((id) => selected.has(id));
 
@@ -80,13 +87,6 @@ export function DonationsManager() {
     await bulkVerify.mutateAsync([...selected]);
     setSelected(new Set());
   }
-
-  const allDonations = donations.data ?? [];
-  const totalPages = Math.ceil(allDonations.length / PAGE_SIZE) || 1;
-  const paginatedDonations = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return allDonations.slice(start, start + PAGE_SIZE);
-  }, [allDonations, page]);
 
   return (
     <div className="space-y-4">
@@ -164,7 +164,7 @@ export function DonationsManager() {
               onChange={toggleAll}
               className="h-4 w-4 rounded accent-amber-600"
             />
-            {allPendingSelected ? "Deselect all" : "Select all pending UPI"}
+            {allPendingSelected ? "Deselect all" : "Select all pending UPI on page"}
             <span className="font-normal text-amber-600">({pendingUpiIds.length})</span>
           </label>
           {selected.size > 0 && (
@@ -182,25 +182,24 @@ export function DonationsManager() {
         </div>
       )}
 
-      {donations.isPending ? (
+      {donationsQuery.isPending ? (
         <ListSkeleton rows={4} rowClassName="h-24" />
-      ) : donations.isError ? (
+      ) : donationsQuery.isError ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {donations.error.message}
+          {donationsQuery.error.message}
         </p>
-      ) : allDonations.length === 0 ? (
+      ) : donations.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           No donations match these filters.
         </p>
       ) : (
         <>
           <p className="text-sm text-gray-600">
-            {allDonations.length} donation
-            {allDonations.length === 1 ? "" : "s"} ·{" "}
-            {rupees(allDonations.reduce((s, d) => s + d.amount, 0))}
+            {total} donation
+            {total === 1 ? "" : "s"} · {rupees(totalAmount)}
           </p>
           <ul className="space-y-3">
-            {paginatedDonations.map((d) => (
+            {donations.map((d) => (
               <DonationRow
                 key={d.id}
                 donation={d}

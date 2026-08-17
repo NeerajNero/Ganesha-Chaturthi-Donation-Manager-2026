@@ -27,6 +27,15 @@ export type Donation = {
   collectedBy?: { name: string };
 };
 
+export type PaginatedDonations = {
+  donations: Donation[];
+  total: number;
+  totalAmount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type CreateDonationInput = {
   donorName: string;
   street: string;
@@ -48,6 +57,16 @@ async function fetchDonations(params: Record<string, string>): Promise<Donation[
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(`/api/donations${qs ? `?${qs}` : ""}`);
   return unwrap<Donation[]>(res);
+}
+
+async function fetchPaginatedDonations(
+  params: Record<string, string | number>
+): Promise<PaginatedDonations> {
+  const qs = new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString();
+  const res = await fetch(`/api/donations${qs ? `?${qs}` : ""}`);
+  return unwrap<PaginatedDonations>(res);
 }
 
 async function fetchStreets(): Promise<string[]> {
@@ -75,6 +94,16 @@ export function useDonations(params: Record<string, string>) {
   return useQuery({
     queryKey: DONATIONS_QUERY_KEYS.list(params),
     queryFn: () => fetchDonations(params),
+  });
+}
+
+export function usePaginatedDonations(params: Record<string, string | number>) {
+  const stringParams = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  );
+  return useQuery({
+    queryKey: DONATIONS_QUERY_KEYS.list(stringParams),
+    queryFn: () => fetchPaginatedDonations(params),
   });
 }
 

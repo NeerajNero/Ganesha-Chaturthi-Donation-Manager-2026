@@ -136,6 +136,9 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const volunteerId = searchParams.get("volunteerId");
     const date = searchParams.get("date");
+    const q = searchParams.get("q");
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
 
     const where: Prisma.DonationWhereInput = {};
 
@@ -154,6 +157,51 @@ export async function GET(req: Request) {
     }
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       where.createdAt = istDayRange(date);
+    }
+
+    if (q && q.trim()) {
+      const term = q.trim();
+      where.OR = [
+        { donorName: { contains: term, mode: "insensitive" } },
+        { receiptNo: { contains: term, mode: "insensitive" } },
+        { mobile: { contains: term, mode: "insensitive" } },
+        { street: { contains: term, mode: "insensitive" } },
+      ];
+    }
+
+    if (pageParam !== null) {
+      const page = Math.max(1, parseInt(pageParam, 10) || 1);
+      const limit = Math.max(1, Math.min(100, parseInt(limitParam ?? "20", 10) || 20));
+      const skip = (page - 1) * limit;
+
+      const [donations, total, sumResult] = await Promise.all([
+        prisma.donation.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+          include: { collectedBy: { select: { name: true } } },
+        }),
+        prisma.donation.count({ where }),
+        prisma.donation.aggregate({
+          where,
+          _sum: { amount: true },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(total / limit) || 1;
+
+      return NextResponse.json({
+        ok: true,
+        data: {
+          donations,
+          total,
+          totalAmount: sumResult._sum.amount ?? 0,
+          page,
+          limit,
+          totalPages,
+        },
+      });
     }
 
     const donations = await prisma.donation.findMany({
