@@ -40,11 +40,14 @@ const getCachedSettings = unstable_cache(
   { revalidate: 60, tags: ["settings"] }
 );
 
-export async function getWallData(isLoggedIn = false) {
-  // All 6 DB queries run in parallel — litRows and topRows were previously
-  // sequential after the main Promise.all.
+export async function getWallData(isLoggedIn = false, page = 1, pageSize = 25) {
+  const safePage = Math.max(1, page);
+  const skip = (safePage - 1) * pageSize;
+
+  // Run DB queries in parallel
   const [
     donations,
+    donationsCount,
     total,
     expenses,
     expensesTotal,
@@ -54,7 +57,8 @@ export async function getWallData(isLoggedIn = false) {
     prisma.donation.findMany({
       where: { status: "VERIFIED" },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      skip,
+      take: pageSize,
       select: {
         id: true,
         donorName: true,
@@ -63,6 +67,9 @@ export async function getWallData(isLoggedIn = false) {
         street: true,
         createdAt: true,
       },
+    }),
+    prisma.donation.count({
+      where: { status: "VERIFIED" },
     }),
     prisma.donation.aggregate({
       _sum: { amount: true },
@@ -115,6 +122,7 @@ export async function getWallData(isLoggedIn = false) {
 
   // When the visitor is not logged in, mask all real donor names as "A Well-Wisher".
   const maskName = (name: string) => (isLoggedIn ? name : ANONYMOUS_NAME);
+  const totalDonationPages = Math.ceil(donationsCount / pageSize) || 1;
 
   return {
     litDiyas: litRows.map((d) => ({
@@ -131,6 +139,9 @@ export async function getWallData(isLoggedIn = false) {
     totalSpent,
     balance,
     donationSectionVisible,
+    page: safePage,
+    totalDonations: donationsCount,
+    totalDonationPages,
     donations: donations.map((d) => ({
       id: d.id,
       name: d.anonymous ? ANONYMOUS_NAME : maskName(d.donorName),

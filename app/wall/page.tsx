@@ -7,6 +7,7 @@ import { CountUp } from "@/components/count-up";
 import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
 import { MilestoneConfetti } from "@/components/milestone-confetti";
+import { Pagination } from "@/components/pagination";
 import { DonationSearch } from "./_components/donation-search";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +16,16 @@ export const metadata: Metadata = {
   title: `Donation Wall — ${COMMITTEE_NAME}`,
 };
 
-export default async function WallPage() {
-  const session = await getSession();
+const DONATIONS_PER_PAGE = 25;
+
+interface WallPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function WallPage({ searchParams }: WallPageProps) {
+  const [session, params] = await Promise.all([getSession(), searchParams]);
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+
   const {
     grandTotal,
     totalSpent,
@@ -25,7 +34,10 @@ export default async function WallPage() {
     expenses,
     topCollectors,
     litDiyas,
-  } = await getWallData(!!session);
+    totalDonationPages,
+    totalDonations,
+  } = await getWallData(!!session, page, DONATIONS_PER_PAGE);
+
   const progress = Math.min(100, Math.round((grandTotal / GOAL_AMOUNT) * 100));
 
   const dateFmt = new Intl.DateTimeFormat("en-IN", {
@@ -73,49 +85,65 @@ export default async function WallPage() {
         <DonationSearch donations={donations} />
 
         <section className="mt-7">
-          <h2 className="font-display mb-3 text-center text-xl text-maroon">
-            🙏 Recent donors
-          </h2>
+          <div className="mb-3 text-center">
+            <h2 className="font-display text-xl text-maroon">
+              🙏 Donors
+            </h2>
+            {totalDonations > 0 && (
+              <p className="text-xs text-ink/50 mt-0.5">
+                {totalDonations} verified donation{totalDonations === 1 ? "" : "s"}
+              </p>
+            )}
+          </div>
+
           {donations.length === 0 ? (
             <p className="rounded-2xl bg-white py-6 text-center text-sm text-ink/60 shadow">
               Donations will appear here once verified.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {donations.map((d) => {
-                const patron = d.amount >= PATRON_THRESHOLD;
-                return (
-                  <li
-                    key={d.id}
-                    className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 shadow-sm ${
-                      patron
-                        ? "border-gold bg-gradient-to-r from-gold/20 to-white"
-                        : "border-gold/25 bg-white"
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <Diya size={22} />
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold">
-                          {d.name}
-                          {patron && (
-                            <span className="ml-1.5 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon align-middle">
-                              🌟 PATRON
-                            </span>
-                          )}
-                        </p>
-                        <p className="truncate text-xs text-ink/50">
-                          {d.street} · {dateFmt.format(d.createdAt)}
-                        </p>
+            <>
+              <ul className="space-y-2">
+                {donations.map((d) => {
+                  const patron = d.amount >= PATRON_THRESHOLD;
+                  return (
+                    <li
+                      key={d.id}
+                      className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 shadow-sm ${
+                        patron
+                          ? "border-gold bg-gradient-to-r from-gold/20 to-white"
+                          : "border-gold/25 bg-white"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Diya size={22} />
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">
+                            {d.name}
+                            {patron && (
+                              <span className="ml-1.5 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon align-middle">
+                                🌟 PATRON
+                              </span>
+                            )}
+                          </p>
+                          <p className="truncate text-xs text-ink/50">
+                            {d.street} · {dateFmt.format(d.createdAt)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <p className="shrink-0 font-bold text-maroon">
-                      ₹{d.amount.toLocaleString("en-IN")}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
+                      <p className="shrink-0 font-bold text-maroon">
+                        ₹{d.amount.toLocaleString("en-IN")}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <Pagination
+                currentPage={page}
+                totalPages={totalDonationPages}
+                baseUrl="/wall"
+              />
+            </>
           )}
         </section>
 

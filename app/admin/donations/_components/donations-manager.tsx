@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useDonations,
   useUpdateDonation,
@@ -9,11 +9,13 @@ import {
 } from "@/lib/api/donations";
 import { useVolunteers } from "@/lib/api/users";
 import { ListSkeleton } from "@/components/skeleton";
+import { Pagination } from "@/components/pagination";
 import { COMMITTEE_NAME } from "@/lib/config";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const FILTER_CLASS =
   "h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:border-orange-500 focus:outline-none";
+const PAGE_SIZE = 20;
 
 export function DonationsManager() {
   const [street, setStreet] = useState("");
@@ -22,6 +24,7 @@ export function DonationsManager() {
   const [volunteerId, setVolunteerId] = useState("");
   const [date, setDate] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
 
   const params: Record<string, string> = {};
   if (street) params.street = street;
@@ -35,6 +38,12 @@ export function DonationsManager() {
   const bulkVerify = useBulkVerify();
 
   const hasFilters = Object.keys(params).length > 0;
+
+  // Reset page when filter inputs change
+  const handleFilterChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    setPage(1);
+  };
 
   // Only pending UPI donations can be bulk-verified.
   const pendingUpiIds =
@@ -72,6 +81,13 @@ export function DonationsManager() {
     setSelected(new Set());
   }
 
+  const allDonations = donations.data ?? [];
+  const totalPages = Math.ceil(allDonations.length / PAGE_SIZE) || 1;
+  const paginatedDonations = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return allDonations.slice(start, start + PAGE_SIZE);
+  }, [allDonations, page]);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -79,12 +95,12 @@ export function DonationsManager() {
           type="text"
           placeholder="Street…"
           value={street}
-          onChange={(e) => setStreet(e.target.value)}
+          onChange={(e) => handleFilterChange(setStreet, e.target.value)}
           className={FILTER_CLASS}
         />
         <select
           value={mode}
-          onChange={(e) => setMode(e.target.value)}
+          onChange={(e) => handleFilterChange(setMode, e.target.value)}
           className={FILTER_CLASS}
         >
           <option value="">All modes</option>
@@ -93,7 +109,7 @@ export function DonationsManager() {
         </select>
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => handleFilterChange(setStatus, e.target.value)}
           className={FILTER_CLASS}
         >
           <option value="">All statuses</option>
@@ -103,7 +119,7 @@ export function DonationsManager() {
         </select>
         <select
           value={volunteerId}
-          onChange={(e) => setVolunteerId(e.target.value)}
+          onChange={(e) => handleFilterChange(setVolunteerId, e.target.value)}
           className={FILTER_CLASS}
         >
           <option value="">All volunteers</option>
@@ -116,7 +132,7 @@ export function DonationsManager() {
         <input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={(e) => handleFilterChange(setDate, e.target.value)}
           className={FILTER_CLASS}
         />
         {hasFilters && (
@@ -129,6 +145,7 @@ export function DonationsManager() {
               setVolunteerId("");
               setDate("");
               setSelected(new Set());
+              setPage(1);
             }}
             className="h-11 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 active:bg-gray-100"
           >
@@ -171,19 +188,19 @@ export function DonationsManager() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {donations.error.message}
         </p>
-      ) : donations.data.length === 0 ? (
+      ) : allDonations.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           No donations match these filters.
         </p>
       ) : (
         <>
           <p className="text-sm text-gray-600">
-            {donations.data.length} donation
-            {donations.data.length === 1 ? "" : "s"} ·{" "}
-            {rupees(donations.data.reduce((s, d) => s + d.amount, 0))}
+            {allDonations.length} donation
+            {allDonations.length === 1 ? "" : "s"} ·{" "}
+            {rupees(allDonations.reduce((s, d) => s + d.amount, 0))}
           </p>
           <ul className="space-y-3">
-            {donations.data.map((d) => (
+            {paginatedDonations.map((d) => (
               <DonationRow
                 key={d.id}
                 donation={d}
@@ -193,6 +210,12 @@ export function DonationsManager() {
               />
             ))}
           </ul>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

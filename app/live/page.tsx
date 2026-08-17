@@ -11,6 +11,7 @@ import {
 import { Diya } from "@/components/diya";
 import { VenueMap } from "@/components/venue-map";
 import { AartiCountdown } from "@/components/aarti-countdown";
+import { Pagination } from "@/components/pagination";
 import { getSettingBool, SHOW_AARTI_COUNTDOWN } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -19,11 +20,28 @@ export const metadata: Metadata = {
   title: `Schedule & Updates — ${COMMITTEE_NAME}`,
 };
 
-export default async function LivePage() {
-  const [updates, showCountdown] = await Promise.all([
-    prisma.update.findMany({ orderBy: { createdAt: "desc" }, take: 30 }),
+const UPDATES_PER_PAGE = 15;
+
+interface LivePageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function LivePage({ searchParams }: LivePageProps) {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+  const skip = (page - 1) * UPDATES_PER_PAGE;
+
+  const [updates, totalUpdates, showCountdown] = await Promise.all([
+    prisma.update.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: UPDATES_PER_PAGE,
+    }),
+    prisma.update.count(),
     getSettingBool(SHOW_AARTI_COUNTDOWN, true),
   ]);
+
+  const totalPages = Math.ceil(totalUpdates / UPDATES_PER_PAGE) || 1;
 
   const timeFmt = new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
@@ -60,19 +78,27 @@ export default async function LivePage() {
               Announcements will appear here during the festival 🙏
             </p>
           ) : (
-            <ul className="space-y-2">
-              {updates.map((u) => (
-                <li
-                  key={u.id}
-                  className="rounded-xl border border-gold/25 bg-white px-4 py-3 shadow-sm"
-                >
-                  <p className="text-sm leading-relaxed">{u.message}</p>
-                  <p className="mt-1 text-xs text-ink/40">
-                    {timeFmt.format(u.createdAt)}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="space-y-2">
+                {updates.map((u) => (
+                  <li
+                    key={u.id}
+                    className="rounded-xl border border-gold/25 bg-white px-4 py-3 shadow-sm"
+                  >
+                    <p className="text-sm leading-relaxed">{u.message}</p>
+                    <p className="mt-1 text-xs text-ink/40">
+                      {timeFmt.format(u.createdAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                baseUrl="/live"
+              />
+            </>
           )}
         </section>
 

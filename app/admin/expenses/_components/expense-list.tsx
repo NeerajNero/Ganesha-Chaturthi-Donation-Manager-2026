@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useDeleteExpense,
   useExpenses,
@@ -8,10 +8,12 @@ import {
 } from "@/lib/api/expenses";
 import { ExpenseForm } from "./expense-form";
 import { ListSkeleton } from "@/components/skeleton";
+import { Pagination } from "@/components/pagination";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const FILTER_CLASS =
   "h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:border-saffron focus:outline-none";
+const PAGE_SIZE = 15;
 
 const SIZE_BADGE: Record<Expense["size"], string> = {
   MINOR: "bg-gray-100 text-gray-600",
@@ -23,6 +25,7 @@ export function ExpenseList() {
   const [size, setSize] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
+  const [page, setPage] = useState(1);
 
   const params: Record<string, string> = {};
   if (size) params.size = size;
@@ -32,12 +35,24 @@ export function ExpenseList() {
   const expenses = useExpenses(params);
   const hasFilters = Object.keys(params).length > 0;
 
+  const handleFilterChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    setPage(1);
+  };
+
+  const allExpenses = expenses.data ?? [];
+  const totalPages = Math.ceil(allExpenses.length / PAGE_SIZE) || 1;
+  const paginatedExpenses = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return allExpenses.slice(start, start + PAGE_SIZE);
+  }, [allExpenses, page]);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <select
           value={size}
-          onChange={(e) => setSize(e.target.value)}
+          onChange={(e) => handleFilterChange(setSize, e.target.value)}
           className={FILTER_CLASS}
         >
           <option value="">All sizes</option>
@@ -49,13 +64,13 @@ export function ExpenseList() {
           type="text"
           placeholder="Category…"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => handleFilterChange(setCategory, e.target.value)}
           className={FILTER_CLASS}
         />
         <input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={(e) => handleFilterChange(setDate, e.target.value)}
           className={FILTER_CLASS}
         />
         {hasFilters && (
@@ -65,6 +80,7 @@ export function ExpenseList() {
               setSize("");
               setCategory("");
               setDate("");
+              setPage(1);
             }}
             className="h-11 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 active:bg-gray-100"
           >
@@ -79,22 +95,28 @@ export function ExpenseList() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {expenses.error.message}
         </p>
-      ) : expenses.data.length === 0 ? (
+      ) : allExpenses.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           No expenses recorded{hasFilters ? " for these filters" : " yet"}.
         </p>
       ) : (
         <>
           <p className="rounded-xl bg-maroon px-4 py-2.5 text-sm font-semibold text-cream">
-            {expenses.data.length} expense
-            {expenses.data.length === 1 ? "" : "s"} · total{" "}
-            {rupees(expenses.data.reduce((s, e) => s + e.amount, 0))}
+            {allExpenses.length} expense
+            {allExpenses.length === 1 ? "" : "s"} · total{" "}
+            {rupees(allExpenses.reduce((s, e) => s + e.amount, 0))}
           </p>
           <ul className="space-y-3">
-            {expenses.data.map((e) => (
+            {paginatedExpenses.map((e) => (
               <ExpenseRow key={e.id} expense={e} />
             ))}
           </ul>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

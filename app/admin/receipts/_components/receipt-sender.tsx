@@ -3,12 +3,15 @@
 import { useState, useMemo } from "react";
 import { useDonations } from "@/lib/api/donations";
 import { ListSkeleton } from "@/components/skeleton";
+import { Pagination } from "@/components/pagination";
 import { COMMITTEE_NAME } from "@/lib/config";
 
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const PAGE_SIZE = 15;
 
 export function ReceiptSender() {
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const donations = useDonations({ status: "VERIFIED" });
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -24,6 +27,12 @@ export function ReceiptSender() {
         d.street.toLowerCase().includes(q)
     );
   }, [donations.data, query]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  const paginatedDonations = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
 
   async function copyLink(receiptNo: string) {
     const url = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/r/${receiptNo}`;
@@ -42,7 +51,10 @@ export function ReceiptSender() {
         type="search"
         placeholder="Search by name, receipt no, mobile, or street…"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setPage(1);
+        }}
         className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
       />
 
@@ -63,7 +75,7 @@ export function ReceiptSender() {
             {query && ` for "${query}"`}
           </p>
           <ul className="space-y-2">
-            {filtered.map((d) => {
+            {paginatedDonations.map((d) => {
               const receiptUrl = `${process.env.NEXT_PUBLIC_APP_URL || ""}/r/${d.receiptNo}`;
               const waText = encodeURIComponent(
                 `🙏 Namaste ${d.donorName}! Your donation receipt for ₹${d.amount.toLocaleString("en-IN")} to ${COMMITTEE_NAME} is ready.\n\nReceipt No: ${d.receiptNo}\nView & share: ${receiptUrl}\n\nGanpati Bappa Morya! 🎉`
@@ -112,6 +124,12 @@ export function ReceiptSender() {
               );
             })}
           </ul>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

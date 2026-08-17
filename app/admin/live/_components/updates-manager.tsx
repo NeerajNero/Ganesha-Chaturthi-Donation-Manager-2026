@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useCreateUpdate, useDeleteUpdate, useUpdates } from "@/lib/api/updates";
 import { ListSkeleton } from "@/components/skeleton";
 import { FestiveSpinner } from "@/components/festive-spinner";
+import { Pagination } from "@/components/pagination";
+
+const PAGE_SIZE = 10;
 
 export function UpdatesManager() {
   const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);
   const updates = useUpdates();
   const create = useCreateUpdate();
   const del = useDeleteUpdate();
@@ -19,6 +23,13 @@ export function UpdatesManager() {
     timeZone: "Asia/Kolkata",
   });
 
+  const allUpdates = updates.data ?? [];
+  const totalPages = Math.ceil(allUpdates.length / PAGE_SIZE) || 1;
+  const paginatedUpdates = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return allUpdates.slice(start, start + PAGE_SIZE);
+  }, [allUpdates, page]);
+
   return (
     <div className="space-y-4">
       <form
@@ -27,7 +38,12 @@ export function UpdatesManager() {
           e.preventDefault();
           create.mutate(
             { message: message.trim() },
-            { onSuccess: () => setMessage("") }
+            {
+              onSuccess: () => {
+                setMessage("");
+                setPage(1);
+              },
+            }
           );
         }}
       >
@@ -69,36 +85,44 @@ export function UpdatesManager() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {updates.error.message}
         </p>
-      ) : updates.data.length === 0 ? (
+      ) : allUpdates.length === 0 ? (
         <p className="rounded-2xl bg-white py-8 text-center text-sm text-gray-500 shadow-sm">
           No updates posted yet.
         </p>
       ) : (
-        <ul className="space-y-2">
-          {updates.data.map((u) => (
-            <li
-              key={u.id}
-              className="flex items-start justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
-            >
-              <div className="min-w-0">
-                <p className="text-sm leading-relaxed">{u.message}</p>
-                <p className="mt-1 text-xs text-gray-400">
-                  {timeFmt.format(new Date(u.createdAt))}
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={del.isPending}
-                onClick={() => {
-                  if (window.confirm("Delete this update?")) del.mutate(u.id);
-                }}
-                className="h-10 shrink-0 rounded-lg border border-red-300 px-3 text-xs font-medium text-red-700 active:bg-red-50 disabled:opacity-60"
+        <>
+          <ul className="space-y-2">
+            {paginatedUpdates.map((u) => (
+              <li
+                key={u.id}
+                className="flex items-start justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
               >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+                <div className="min-w-0">
+                  <p className="text-sm leading-relaxed">{u.message}</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    {timeFmt.format(new Date(u.createdAt))}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={del.isPending}
+                  onClick={() => {
+                    if (window.confirm("Delete this update?")) del.mutate(u.id);
+                  }}
+                  className="h-10 shrink-0 rounded-lg border border-red-300 px-3 text-xs font-medium text-red-700 active:bg-red-50 disabled:opacity-60"
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </div>
   );
