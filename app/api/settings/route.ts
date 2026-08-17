@@ -6,12 +6,14 @@ import {
   setSettingBool,
   SHOW_AARTI_COUNTDOWN,
   SHOW_WALL_EXPENSES,
+  DONATION_SECTION_VISIBLE,
 } from "@/lib/settings";
 
 const updateSettingsSchema = z
   .object({
     showAartiCountdown: z.boolean().optional(),
     showWallExpenses: z.boolean().optional(),
+    donationSectionVisible: z.boolean().optional(),
   })
   .refine((v) => Object.values(v).some((x) => x !== undefined), {
     message: "Nothing to update",
@@ -29,11 +31,12 @@ async function requireAdmin() {
 }
 
 async function readAll() {
-  const [showAartiCountdown, showWallExpenses] = await Promise.all([
+  const [showAartiCountdown, showWallExpenses, donationSectionVisible] = await Promise.all([
     getSettingBool(SHOW_AARTI_COUNTDOWN, true),
     getSettingBool(SHOW_WALL_EXPENSES, true),
+    getSettingBool(DONATION_SECTION_VISIBLE, true),
   ]);
-  return { showAartiCountdown, showWallExpenses };
+  return { showAartiCountdown, showWallExpenses, donationSectionVisible };
 }
 
 export async function GET() {
@@ -63,12 +66,15 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const { showAartiCountdown, showWallExpenses } = parsed.data;
+    const { showAartiCountdown, showWallExpenses, donationSectionVisible } = parsed.data;
     if (showAartiCountdown !== undefined) {
       await setSettingBool(SHOW_AARTI_COUNTDOWN, showAartiCountdown);
     }
     if (showWallExpenses !== undefined) {
       await setSettingBool(SHOW_WALL_EXPENSES, showWallExpenses);
+    }
+    if (donationSectionVisible !== undefined) {
+      await setSettingBool(DONATION_SECTION_VISIBLE, donationSectionVisible);
     }
 
     return NextResponse.json({ ok: true, data: await readAll() });

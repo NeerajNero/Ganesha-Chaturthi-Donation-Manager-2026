@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSettingBool, SHOW_WALL_EXPENSES } from "@/lib/settings";
+import { getSettingBool, SHOW_WALL_EXPENSES, DONATION_SECTION_VISIBLE } from "@/lib/settings";
 
 // Shared by the public API routes AND the public pages so the same rules
 // apply everywhere: rejected receipts don't exist, anonymous donors are
@@ -24,7 +24,7 @@ export async function getReceipt(receiptNo: string) {
 
 export const ANONYMOUS_NAME = "A Well-Wisher";
 
-export async function getWallData() {
+export async function getWallData(isLoggedIn = false) {
   const [donations, total, expenses, expensesTotal] = await Promise.all([
     prisma.donation.findMany({
       where: { status: "VERIFIED" },
@@ -66,10 +66,6 @@ export async function getWallData() {
     take: 60,
     select: { id: true, donorName: true, anonymous: true },
   });
-  const litDiyas = litRows.map((d) => ({
-    id: d.id,
-    name: d.anonymous ? ANONYMOUS_NAME : d.donorName,
-  }));
 
   // Top collectors leaderboard — volunteer first names + verified totals only.
   const topRows = await prisma.donation.groupBy({
@@ -94,8 +90,17 @@ export async function getWallData() {
   const totalSpent = showExpenses ? (expensesTotal._sum.amount ?? 0) : null;
   const balance = totalSpent === null ? null : grandTotal - totalSpent;
 
+  // Admin toggle: when off, the donation section is hidden from the public home page.
+  const donationSectionVisible = await getSettingBool(DONATION_SECTION_VISIBLE, true);
+
+  // When the visitor is not logged in, mask all real donor names as "A Well-Wisher".
+  const maskName = (name: string) => (isLoggedIn ? name : ANONYMOUS_NAME);
+
   return {
-    litDiyas,
+    litDiyas: litRows.map((d) => ({
+      id: d.id,
+      name: d.anonymous ? ANONYMOUS_NAME : maskName(d.donorName),
+    })),
     topCollectors: topRows.map((r) => ({
       id: r.collectedById,
       name: collectorName.get(r.collectedById) ?? "Volunteer",
@@ -105,9 +110,10 @@ export async function getWallData() {
     grandTotal,
     totalSpent,
     balance,
+    donationSectionVisible,
     donations: donations.map((d) => ({
       id: d.id,
-      name: d.anonymous ? ANONYMOUS_NAME : d.donorName,
+      name: d.anonymous ? ANONYMOUS_NAME : maskName(d.donorName),
       amount: d.amount,
       street: d.street,
       createdAt: d.createdAt,

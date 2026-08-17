@@ -8,6 +8,7 @@ import { useToast } from "@/components/toaster";
 export type Settings = {
   showAartiCountdown: boolean;
   showWallExpenses: boolean;
+  donationSectionVisible: boolean;
 };
 
 const TOGGLE_MESSAGES: Record<keyof Settings, { on: string; off: string }> = {
@@ -18,6 +19,10 @@ const TOGGLE_MESSAGES: Record<keyof Settings, { on: string; off: string }> = {
   showWallExpenses: {
     on: "Expenses are now visible on the public wall ✓",
     off: "Expenses hidden from the public wall",
+  },
+  donationSectionVisible: {
+    on: "Donation section is now visible on the public home page ✓",
+    off: "Donation section hidden from the public home page",
   },
 };
 

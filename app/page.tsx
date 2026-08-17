@@ -20,7 +20,9 @@ export const dynamic = "force-dynamic";
 const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 export default async function HomePage() {
-  const [session, wall] = await Promise.all([getSession(), getWallData()]);
+  const session = await getSession();
+  const wall = await getWallData(!!session);
+  const { donationSectionVisible } = wall;
   const progress = Math.min(
     100,
     Math.round((wall.grandTotal / GOAL_AMOUNT) * 100)
@@ -93,7 +95,7 @@ export default async function HomePage() {
               href="/live"
               className="rounded-full bg-maroon px-3 py-1.5 text-cream shadow-sm"
             >
-              📣 Schedule & updates
+              📣 Schedule &amp; updates
             </Link>
             <Link
               href="/gallery"
@@ -104,75 +106,80 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <div className="mt-6">
-          <MilestoneBanner progress={progress} />
-        </div>
+        {/* Donation section — hidden when admin toggles it off */}
+        {donationSectionVisible && (
+          <>
+            <div className="mt-6">
+              <MilestoneBanner progress={progress} />
+            </div>
 
-        {/* live total */}
-        <section className="mt-6 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
-          <p className="text-xs uppercase tracking-widest text-ink/60">
-            Collected so far
-          </p>
-          <p className="font-display mt-1 text-4xl text-maroon">
-            {rupees(wall.grandTotal)}
-          </p>
-          <p className="mt-1 text-sm text-ink/60">
-            of {rupees(GOAL_AMOUNT)} goal
-          </p>
-          <div className="mt-4 h-4 overflow-hidden rounded-full bg-cream ring-1 ring-gold/40">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-marigold to-gold"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="mt-2 text-sm font-semibold text-ink/80">
-            {progress}% of goal
-          </p>
-        </section>
+            {/* live total */}
+            <section className="mt-6 rounded-3xl border border-gold/40 bg-white p-6 text-center shadow-lg">
+              <p className="text-xs uppercase tracking-widest text-ink/60">
+                Collected so far
+              </p>
+              <p className="font-display mt-1 text-4xl text-maroon">
+                {rupees(wall.grandTotal)}
+              </p>
+              <p className="mt-1 text-sm text-ink/60">
+                of {rupees(GOAL_AMOUNT)} goal
+              </p>
+              <div className="mt-4 h-4 overflow-hidden rounded-full bg-cream ring-1 ring-gold/40">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-marigold to-gold"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-sm font-semibold text-ink/80">
+                {progress}% of goal
+              </p>
+            </section>
 
-        {/* recent contributors */}
-        <section className="mt-8">
-          <h2 className="font-display mb-3 text-center text-xl text-maroon">
-            Recent contributors
-          </h2>
-          {recent.length === 0 ? (
-            <p className="rounded-2xl bg-white py-6 text-center text-sm text-ink/60 shadow">
-              Be the first to contribute this year 🙏
-            </p>
-          ) : (
-            <ul className="grid grid-cols-2 gap-2">
-              {recent.map((d) => (
-                <li
-                  key={d.id}
-                  className={`rounded-xl border px-3 py-2.5 shadow-sm ${
-                    d.amount >= PATRON_THRESHOLD
-                      ? "border-gold bg-gradient-to-br from-gold/15 to-white"
-                      : "border-gold/30 bg-white"
-                  }`}
+            {/* recent contributors */}
+            <section className="mt-8">
+              <h2 className="font-display mb-3 text-center text-xl text-maroon">
+                Recent contributors
+              </h2>
+              {recent.length === 0 ? (
+                <p className="rounded-2xl bg-white py-6 text-center text-sm text-ink/60 shadow">
+                  Be the first to contribute this year 🙏
+                </p>
+              ) : (
+                <ul className="grid grid-cols-2 gap-2">
+                  {recent.map((d) => (
+                    <li
+                      key={d.id}
+                      className={`rounded-xl border px-3 py-2.5 shadow-sm ${
+                        d.amount >= PATRON_THRESHOLD
+                          ? "border-gold bg-gradient-to-br from-gold/15 to-white"
+                          : "border-gold/30 bg-white"
+                      }`}
+                    >
+                      <p className="truncate text-sm font-semibold">{d.name}</p>
+                      <p className="truncate text-xs text-ink/50">{d.street}</p>
+                      <p className="mt-0.5 text-sm font-bold text-maroon">
+                        {rupees(d.amount)}
+                        {d.amount >= PATRON_THRESHOLD && (
+                          <span className="ml-1 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon">
+                            🌟 PATRON
+                          </span>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 text-center">
+                <Link
+                  href="/wall"
+                  className="text-sm font-semibold text-maroon underline underline-offset-4"
                 >
-                  <p className="truncate text-sm font-semibold">{d.name}</p>
-                  <p className="truncate text-xs text-ink/50">{d.street}</p>
-                  <p className="mt-0.5 text-sm font-bold text-maroon">
-                    {rupees(d.amount)}
-                    {d.amount >= PATRON_THRESHOLD && (
-                      <span className="ml-1 rounded bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold text-maroon">
-                        🌟 PATRON
-                      </span>
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-3 text-center">
-            <Link
-              href="/wall"
-              className="text-sm font-semibold text-maroon underline underline-offset-4"
-            >
-              View the full donation wall →
-            </Link>
-          </p>
-        </section>
+                  View the full donation wall →
+                </Link>
+              </p>
+            </section>
+          </>
+        )}
 
         {/* transparency */}
         <section className="mt-8 rounded-3xl bg-maroon p-6 text-cream shadow-lg">

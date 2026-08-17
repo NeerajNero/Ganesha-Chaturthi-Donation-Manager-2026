@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
 import { getWallData } from "@/lib/public-data";
 import { COMMITTEE_NAME, GOAL_AMOUNT, PATRON_THRESHOLD } from "@/lib/config";
 import { CountUp } from "@/components/count-up";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WallPage() {
+  const session = await getSession();
   const {
     grandTotal,
     totalSpent,
@@ -21,7 +23,7 @@ export default async function WallPage() {
     expenses,
     topCollectors,
     litDiyas,
-  } = await getWallData();
+  } = await getWallData(!!session);
   const progress = Math.min(100, Math.round((grandTotal / GOAL_AMOUNT) * 100));
 
   const dateFmt = new Intl.DateTimeFormat("en-IN", {

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { getWallData } from "@/lib/public-data";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const data = await getWallData();
+    const session = await getSession();
+    const data = await getWallData(!!session);
     return NextResponse.json({ ok: true, data });
   } catch {
     return NextResponse.json(
