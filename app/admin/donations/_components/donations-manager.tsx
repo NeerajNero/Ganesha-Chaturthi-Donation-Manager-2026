@@ -324,8 +324,7 @@ function DonationRow({
         </div>
       </div>
 
-      {(d.status === "PENDING" ||
-        (d.mode === "CASH" && !d.cashDeposited)) && (
+      {(d.status === "PENDING" || d.mode === "CASH") && (
         <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
           {d.status === "PENDING" && (
             <>
@@ -347,14 +346,44 @@ function DonationRow({
               </button>
             </>
           )}
-          {d.mode === "CASH" && !d.cashDeposited && (
+          {d.mode === "CASH" && d.status === "VERIFIED" && (
+            <>
+              {!d.cashDeposited && (
+                <button
+                  type="button"
+                  disabled={update.isPending}
+                  onClick={() => update.mutate({ id: d.id, cashDeposited: true })}
+                  className="h-11 flex-1 rounded-lg border border-blue-300 text-sm font-semibold text-blue-700 active:bg-blue-50 disabled:opacity-60"
+                >
+                  💰 Mark deposited
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={update.isPending}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Reject ${d.receiptNo} — ${rupees(d.amount)} cash from ${d.donorName}? It will be removed from all totals and the wall.`
+                    )
+                  ) {
+                    update.mutate({ id: d.id, status: "REJECTED" });
+                  }
+                }}
+                className="h-11 flex-1 rounded-lg border border-red-300 text-sm font-semibold text-red-700 active:bg-red-50 disabled:opacity-60"
+              >
+                ✕ Reject
+              </button>
+            </>
+          )}
+          {d.mode === "CASH" && d.status === "REJECTED" && (
             <button
               type="button"
               disabled={update.isPending}
-              onClick={() => update.mutate({ id: d.id, cashDeposited: true })}
-              className="h-11 flex-1 rounded-lg border border-blue-300 text-sm font-semibold text-blue-700 active:bg-blue-50 disabled:opacity-60"
+              onClick={() => update.mutate({ id: d.id, status: "VERIFIED" })}
+              className="h-11 flex-1 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 active:bg-gray-100 disabled:opacity-60"
             >
-              💰 Mark deposited
+              ↩ Restore
             </button>
           )}
         </div>
