@@ -15,6 +15,7 @@ import { Diya } from "@/components/diya";
 import { MilestoneBanner } from "@/components/milestone-banner";
 import { MilestoneConfetti } from "@/components/milestone-confetti";
 import { BlessingGanesha } from "@/components/blessing-ganesha";
+import { CelebrationCountdown } from "@/components/celebration-countdown";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,9 @@ export default async function HomePage() {
             </Link>
           </div>
         </section>
+
+        {/* countdown to the celebration day */}
+        <CelebrationCountdown />
 
         {/* Donation section — hidden when admin toggles it off */}
         {donationSectionVisible && (
