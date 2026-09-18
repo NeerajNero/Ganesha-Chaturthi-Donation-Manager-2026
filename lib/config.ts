@@ -3,7 +3,7 @@ export const COMMITTEE_NAME = "Ganesh Utsav 2026 - SKYSTARS";
 export const YEAR_PREFIX = "GU26";
 
 // Shown on the public homepage — edit to your real dates/venue.
-export const FESTIVAL_DATES = "14 – 23 September 2026";
+export const FESTIVAL_DATES = "24 September 2026";
 export const VENUE = "SKYSTARS Community Grounds";
 
 // Pooja venue coordinates — enables the map + directions buttons on /live
@@ -13,9 +13,10 @@ export const VENUE_COORDS: { lat: number; lng: number } | null = {
   lng: 77.684085,
 };
 
-// Festival window + daily aarti times (IST) — powers the /live countdown.
-export const FESTIVAL_START = "TBA"; // YYYY-MM-DD
-export const FESTIVAL_END = "TBA";
+// Festival window + daily aarti times (IST) — powers the /live countdown
+// and the homepage celebration countdown.
+export const FESTIVAL_START = "2026-09-24"; // YYYY-MM-DD
+export const FESTIVAL_END = "2026-09-24";
 export const DAILY_AARTI = [
   { label: "Morning Aarti", time: "08:00" },
   { label: "Evening Aarti", time: "18:30" },
@@ -26,5 +27,5 @@ export const PATRON_THRESHOLD = 5_000;
 
 // Festival programme shown on /live — edit to your real schedule.
 export const SCHEDULE = [
-  { date: "14 Sep", day: "Monday", title: "Ganesh Sthapana & Pran Pratishtha", time: "10:00 AM" },
+  { date: "24 Sep", day: "Thursday", title: "Ganesh Sthapana & Pran Pratishtha", time: "10:00 AM" },
 ] as const;
