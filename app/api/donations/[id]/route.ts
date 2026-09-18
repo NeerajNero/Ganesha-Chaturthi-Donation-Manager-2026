@@ -44,7 +44,13 @@ export async function PATCH(
     }
 
     const { status, cashDeposited } = parsed.data;
-    if (status && donation.mode !== "UPI") {
+    // Cash is auto-verified on entry, so VERIFIED on cash only makes sense as
+    // an undo of a rejection. REJECTED is allowed for any mode.
+    if (
+      status === "VERIFIED" &&
+      donation.mode !== "UPI" &&
+      donation.status !== "REJECTED"
+    ) {
       return NextResponse.json(
         { ok: false, error: "Cash donations are verified automatically" },
         { status: 400 }
@@ -56,12 +62,24 @@ export async function PATCH(
         { status: 400 }
       );
     }
+    if (cashDeposited && donation.status === "REJECTED") {
+      return NextResponse.json(
+        { ok: false, error: "Rejected donations cannot be marked deposited" },
+        { status: 400 }
+      );
+    }
 
     const updated = await prisma.donation.update({
       where: { id },
       data: {
         ...(status ? { status } : {}),
-        ...(cashDeposited ? { cashDeposited } : {}),
+        // Rejecting also clears the deposited flag so the amount stops
+        // counting toward deposited cash totals.
+        ...(status === "REJECTED"
+          ? { cashDeposited: false }
+          : cashDeposited
+            ? { cashDeposited }
+            : {}),
       },
       include: { collectedBy: { select: { name: true } } },
     });
